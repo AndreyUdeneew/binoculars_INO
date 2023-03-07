@@ -1,16 +1,35 @@
 String cmd, CMDcur;
 int programNumber;
-//int lamp = 13;
+
 volatile int counter = 0;
-//volatile int lampCounter = 0;
-uint8_t PWM_White = 2;
-uint8_t PWM_UV = 200;
-uint8_t PWM_Red = 200;
+
 uint8_t UV_LED = 5;
 uint8_t WHITE_LED = 6;
 uint8_t RED_LED = 4;
+
 uint8_t VAR_X_pin = 26;
 uint8_t VAR_Y_pin = 27;
+
+uint8_t nsleep = 2;
+
+uint8_t nFLT1 = 10;
+uint8_t nEnl = 11;
+uint8_t stepPin_1 = 12;
+uint8_t dirPin_1 = 13;
+uint8_t m0_1 = 14;
+uint8_t m1_1 = 15;
+
+uint8_t nFLT2 = 21;
+uint8_t nEn2 = 20;
+uint8_t stepPin_2 = 19;
+uint8_t dirPin_2 = 18;
+uint8_t m0_2 = 17;
+uint8_t m1_2 = 16;
+
+uint8_t PWM_White = 2;
+uint8_t PWM_UV = 250;
+uint8_t PWM_Red = 250;
+
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
