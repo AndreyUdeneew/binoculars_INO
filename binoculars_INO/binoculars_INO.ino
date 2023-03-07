@@ -9,6 +9,10 @@ uint8_t PWM_Red = 200;
 uint8_t UV_LED = 5;
 uint8_t WHITE_LED = 6;
 uint8_t RED_LED = 4;
+uint8_t VAR_X_pin = 26;
+uint8_t VAR_Y_pin = 27;
+uint16_t VAR_X = 0;
+uint16_t VAR_Y = 0;
 
 void setup()
 {
@@ -84,5 +88,9 @@ void waiting_4_command() {
 
 void loop()
 {
+  VAR_X = analogRead(VAR_X_pin);
+  VAR_Y = analogRead(VAR_Y_pin);
+  Serial.println(VAR_X);
+  Serial.println(VAR_Y);
 //  waiting_4_command();
 }
