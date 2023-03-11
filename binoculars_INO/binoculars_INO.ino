@@ -57,7 +57,7 @@ void setup()
   Serial.setTimeout(100);
 //  pinMode(strobeInput,INPUT);
 //  attachInterrupt(strobeInput, Strobe_Input_Handler, RISING); // 4 ARDUINO
-attachInterrupt(digitalPinToInterrupt(strobeInput), Strobe_Input_Handler, FALLING); // 4 Rpi Pico
+attachInterrupt(digitalPinToInterrupt(strobeInput), Strobe_Input_Handler, RISING); // 4 Rpi Pico
   pinMode(strobeInput,INPUT_PULLUP); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
 //  pinMode(strobeInput,INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
 }
@@ -101,7 +101,7 @@ void waiting_4_command() {
     PWM_VALlowest = cmd[4] - '0';
         PWM_VAL = (PWM_VALH * 100) + (PWM_VALL * 10) + (PWM_VALlowest * 1);
         PWM_UV = PWM_VAL;
-        analogWrite(UV_LED, PWM_UV);
+//        analogWrite(UV_LED, PWM_UV);
         Serial.println("UV has been changed");
         Serial.println(PWM_VAL);
   }
@@ -112,7 +112,7 @@ void waiting_4_command() {
     PWM_VALlowest = cmd[4] - '0';
         PWM_VAL = (PWM_VALH * 100) + (PWM_VALL * 10) + (PWM_VALlowest * 1);
         PWM_White = PWM_VAL;
-    analogWrite(WHITE_LED, PWM_White);
+//    analogWrite(WHITE_LED, PWM_White);
     Serial.println("WH has been changed");
     Serial.println(PWM_VAL);
   }
@@ -123,7 +123,7 @@ void waiting_4_command() {
     PWM_VALlowest = cmd[4] - '0';
         PWM_VAL = (PWM_VALH * 100) + (PWM_VALL * 10) + (PWM_VALlowest * 1);
         PWM_Red = PWM_VAL;
-    analogWrite(RED_LED, PWM_Red);
+//    analogWrite(RED_LED, PWM_Red);
     Serial.println("WH has been changed");
     Serial.println(PWM_VAL);
   }
