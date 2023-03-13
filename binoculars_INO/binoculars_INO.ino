@@ -31,6 +31,8 @@ uint8_t PWM_White = 2;
 uint8_t PWM_UV = 250;
 uint8_t PWM_Red = 250;
 
+uint8_t mode;
+
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
@@ -126,6 +128,12 @@ void waiting_4_command() {
 //    analogWrite(RED_LED, PWM_Red);
     Serial.println("WH has been changed");
     Serial.println(PWM_VAL);
+  }
+
+      if (cmd.substring(0, 1) == "M") {
+    mode = cmd[1] - '0';
+    Serial.println("mode has been changed");
+    Serial.println(mode);
   }
 }
 
