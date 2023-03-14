@@ -36,6 +36,38 @@ uint8_t mode;
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
+  
+uint8_t M1[2][2]
+{
+  {PWM_UV,0},
+  {0,0}
+};
+uint8_t M2[2][2]
+{
+  {0,0},
+  {PWM_Red,0}
+};
+uint8_t M3[2][2]
+{
+  {PWM_UV,0},
+  {PWM_Red,0}
+};
+//uint8_t M4[2][2]
+//{
+//  {,},
+//  {,}
+//};
+//uint8_t M5[2][2]
+//{
+//  {,},
+//  {,}
+//};
+//uint8_t M6[2][2]
+//{
+//  {,},
+//  {,}
+//};
+
 void setup()
 {
 //  pinMode(strpbeInput, INPUT_PULLUP); /// Our camera strobe in HIGH - Acquiring, LOW - not acquiring
