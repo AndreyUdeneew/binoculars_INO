@@ -36,7 +36,11 @@ uint8_t mode;
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
-  
+uint8_t M[2][2]
+{
+  {0,0},
+  {0,0}
+};  
 uint8_t M1[2][2]
 {
   {PWM_UV,0},
@@ -102,21 +106,19 @@ void Strobe_Input_Handler() {
     counter = 0;
     }
      if (counter == 1) {
-    analogWrite(UV_LED, PWM_UV);
-    analogWrite(RED_LED, 0);
-//digitalWrite(UV_LED, HIGH);
-//digitalWrite(RED_LED, LOW);
+//    analogWrite(UV_LED, PWM_UV);
+//    analogWrite(RED_LED, 0);
+    analogWrite(UV_LED, M[0][0]);
+    analogWrite(RED_LED, M[1][0]);
   }
   else{
-    analogWrite(UV_LED, 0);
-    analogWrite(RED_LED, PWM_Red);
-//digitalWrite(UV_LED, LOW);
-//digitalWrite(RED_LED, HIGH);
-  }
-//    if (counter == 2) {
 //    analogWrite(UV_LED, 0);
-////    digitalWrite(UV_LED, LOW);
-//  }
+//    analogWrite(RED_LED, PWM_Red);
+    analogWrite(UV_LED, M[0][1]);
+    analogWrite(RED_LED, M[1][1]);
+
+  }
+
   counter +=1;  // + синхр.  
 }
 
@@ -166,6 +168,24 @@ void waiting_4_command() {
     mode = cmd[1] - '0';
     Serial.println("mode has been changed");
     Serial.println(mode);
+    if(mode == 1)
+    {
+      for (uint8_t i = 0; i < 2; i++)
+    for (uint8_t j = 0; j < 2; j++)
+        M[i][j] = M1[i][j];
+    }
+        if(mode == 2)
+    {
+      for (uint8_t i = 0; i < 2; i++)
+    for (uint8_t j = 0; j < 2; j++)
+        M[i][j] = M2[i][j];
+    }
+        if(mode == 3)
+    {
+      for (uint8_t i = 0; i < 2; i++)
+    for (uint8_t j = 0; j < 2; j++)
+        M[i][j] = M3[i][j];
+    }
   }
 }
 
