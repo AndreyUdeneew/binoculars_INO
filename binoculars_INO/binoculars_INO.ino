@@ -1,12 +1,18 @@
+//#include <Wire.h>
+//#include "Adafruit_VL53L1X.h"
+//#define IRQ_PIN 3
+//#define XSHUT_PIN 28
+//Adafruit_VL53L1X vl53 = Adafruit_VL53L1X(XSHUT_PIN, IRQ_PIN);
+
 String cmd, CMDcur;
 uint8_t programNumber;
 
 volatile int counter = 0;
 
 uint8_t strobeInput = 2;
-uint8_t UV_LED = 5;
+uint8_t UV_LED = 8;
 uint8_t WHITE_LED = 6;
-uint8_t RED_LED = 4;
+uint8_t RED_LED = 7;
 
 uint8_t VAR_X_pin = 26;
 uint8_t VAR_Y_pin = 27;
@@ -45,6 +51,7 @@ volatile uint8_t M0[2][2]
 volatile uint8_t M1[2][2];
 volatile uint8_t M2[2][2];
 volatile uint8_t M3[2][2];
+volatile uint8_t M4[2][2];
 
 void modesCacheRefresh()
 {
@@ -81,6 +88,26 @@ void setup()
   M3[0][1] = 0;
   M3[1][0] = PWM_Red;
   M3[1][1] = 0;
+
+  M4[0][0] = PWM_UV;          //oxygenation IR LEDs must be mounted instead of UV LEDs.
+  M4[0][1] = 0;
+  M4[1][0] = 0;
+  M4[1][1] = PWM_Red;
+
+  pinMode(stepPin_1, OUTPUT);
+  pinMode(dirPin_1, OUTPUT);
+  pinMode(stepPin_2, OUTPUT);
+  pinMode(dirPin_2, OUTPUT);
+  pinMode(nsleep, OUTPUT);
+  pinMode(nEnl, OUTPUT);
+  pinMode(nEn2, OUTPUT);
+  pinMode(nFLT1, OUTPUT);
+  pinMode(nFLT2, OUTPUT);
+  pinMode(m0_1, OUTPUT);
+  pinMode(m1_1, OUTPUT);
+  pinMode(m0_2, OUTPUT);
+  pinMode(m1_2, OUTPUT);
+  
   //  pinMode(strpbeInput, INPUT_PULLUP); /// Our camera strobe in HIGH - Acquiring, LOW - not acquiring
   pinMode(UV_LED, OUTPUT);// UV LED
   pinMode(RED_LED, OUTPUT);// UV LED
@@ -98,7 +125,37 @@ void setup()
   //  attachInterrupt(strobeInput, Strobe_Input_Handler, RISING); // 4 ARDUINO
   attachInterrupt(digitalPinToInterrupt(strobeInput), Strobe_Input_Handler, RISING); // 4 Rpi Pico
   pinMode(strobeInput, INPUT_PULLUP); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
-  //  pinMode(strobeInput,INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
+//    pinMode(strobeInput,INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
+//  while (!Serial) delay(10);
+
+//  Serial.println(F("Adafruit VL53L1X sensor demo"));
+//  Wire.begin(400000);
+//  if (! vl53.begin(0x29, &Wire)) {
+//    Serial.print(F("Error on init of VL sensor: "));
+//    Serial.println(vl53.vl_status);
+//    while (1)       delay(10);
+//  }
+//  Serial.println(F("VL53L1X sensor OK!"));
+//
+//  Serial.print(F("Sensor ID: 0x"));
+//  Serial.println(vl53.sensorID(), HEX);
+//
+//  if (! vl53.startRanging()) {
+//    Serial.print(F("Couldn't start ranging: "));
+//    Serial.println(vl53.vl_status);
+//    while (1)       delay(10);
+//  }
+//  Serial.println(F("Ranging started"));
+//
+//  // Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
+//  vl53.setTimingBudget(50);
+//  Serial.print(F("Timing budget (ms): "));
+//  Serial.println(vl53.getTimingBudget());
+//
+//  /*
+//  vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
+//  vl.VL53L1X_SetInterruptPolarity(0);
+//  */
 }
 
 
@@ -192,6 +249,12 @@ void waiting_4_command() {
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M3[i][j];
     }
+        if (mode == 4)
+    {
+      for (uint8_t i = 0; i < 2; i++)
+        for (uint8_t j = 0; j < 2; j++)
+          M[i][j] = M4[i][j];
+    }
     if (mode == 0)
     {
       for (uint8_t i = 0; i < 2; i++)
@@ -207,10 +270,30 @@ void loop()
   VAR_Y = analogRead(VAR_Y_pin);
   //  Serial.println(VAR_X);
   //  Serial.println(VAR_Y);
-  Serial.println(counter);
-  digitalWrite(3, HIGH);
-  delay(500);
-  digitalWrite(3, LOW);
-  delay(500);
+//  Serial.println(counter);
+//  digitalWrite(3, HIGH);
+//  delay(500);
+//  digitalWrite(3, LOW);
+//  delay(500);
   waiting_4_command();
+  digitalWrite(nEnl, LOW);
+  digitalWrite(dirPin_1, HIGH);
+  digitalWrite(m1_1, LOW);
+  digitalWrite(m0_1, HIGH);
+
+  digitalWrite(nEn2, LOW);
+  digitalWrite(dirPin_2, HIGH);
+  digitalWrite(m1_2, LOW);
+  digitalWrite(m0_2, HIGH);
+
+  digitalWrite(nsleep, HIGH);
+  for (int x = 0; x < 200; x++) {
+//    digitalWrite(stepPin_1, HIGH);
+    digitalWrite(stepPin_2, HIGH);
+    delay(10);  // ms (Note : 1000ms = 1sec)
+//    digitalWrite(stepPin_1, LOW);
+    digitalWrite(stepPin_2, LOW);
+    delay(10); // ms (Note : 1000ms = 1sec)
+    Serial.println(x);
+  }
 }
