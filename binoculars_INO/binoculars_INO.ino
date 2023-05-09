@@ -33,9 +33,9 @@ uint8_t dirPin_2 = 18;
 uint8_t m0_2 = 17;
 uint8_t m1_2 = 16;
 
-volatile uint8_t PWM_White = 2;
-volatile uint8_t PWM_UV = 250;
-volatile uint8_t PWM_Red = 250;
+volatile uint8_t PWM_White = 1;
+volatile uint8_t PWM_UV = 1;
+volatile uint8_t PWM_Red = 1;
 
 uint8_t mode;
 
@@ -43,15 +43,18 @@ uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
 volatile uint8_t M[2][2];
-volatile uint8_t M0[2][2]
+volatile uint8_t M0[3][2]
 {
+  {0, 0},
   {0, 0},
   {0, 0}
 };
-volatile uint8_t M1[2][2];
-volatile uint8_t M2[2][2];
-volatile uint8_t M3[2][2];
-volatile uint8_t M4[2][2];
+volatile uint8_t M1[3][2];
+volatile uint8_t M2[3][2];
+volatile uint8_t M3[3][2];
+volatile uint8_t M4[3][2];
+volatile uint8_t M5[3][2];
+
 
 void modesCacheRefresh()
 {
@@ -60,16 +63,36 @@ void modesCacheRefresh()
   M1[0][1] = 0;
   M1[1][0] = 0;
   M1[1][1] = 0;
+  M1[2][0] = PWM_White;
+  M1[2][1] = PWM_White;
 
   M2[0][0] = 0;
   M2[0][1] = 0;
   M2[1][0] = PWM_Red;
   M2[1][1] = 0;
+  M2[2][0] = PWM_White;
+  M2[2][1] = PWM_White;
 
   M3[0][0] = PWM_UV;
   M3[0][1] = 0;
   M3[1][0] = PWM_Red;
   M3[1][1] = 0;
+  M3[2][0] = PWM_White;
+  M3[2][1] = PWM_White;
+
+  M4[0][0] = PWM_UV;          //oxygenation IR LEDs must be mounted instead of UV LEDs.
+  M4[0][1] = 0;
+  M4[1][0] = 0;
+  M4[1][1] = PWM_Red;
+  M4[2][0] = 0;
+  M4[2][1] = 0;
+
+  M5[0][0] = 0;             // ICG mode IR LEDs must be mounted instead of White LEDs.
+  M5[0][1] = 0;
+  M5[1][0] = 0;
+  M5[1][1] = 0;
+  M5[2][0] = PWM_White;
+  M5[2][1] = 0;
 }
 
 void setup()
@@ -78,21 +101,36 @@ void setup()
   M1[0][1] = 0;
   M1[1][0] = 0;
   M1[1][1] = 0;
+  M1[2][0] = PWM_White;
+  M1[2][1] = PWM_White;
 
   M2[0][0] = 0;
   M2[0][1] = 0;
   M2[1][0] = PWM_Red;
   M2[1][1] = 0;
+  M2[2][0] = PWM_White;
+  M2[2][1] = PWM_White;
 
   M3[0][0] = PWM_UV;
   M3[0][1] = 0;
   M3[1][0] = PWM_Red;
   M3[1][1] = 0;
+  M3[2][0] = PWM_White;
+  M3[2][1] = PWM_White;
 
   M4[0][0] = PWM_UV;          //oxygenation IR LEDs must be mounted instead of UV LEDs.
   M4[0][1] = 0;
   M4[1][0] = 0;
   M4[1][1] = PWM_Red;
+  M4[2][0] = 0;
+  M4[2][1] = 0;
+
+  M5[0][0] = 0;             // ICG mode IR LEDs must be mounted instead of White LEDs.
+  M5[0][1] = 0;
+  M5[1][0] = 0;
+  M5[1][1] = 0;
+  M5[2][0] = PWM_White;
+  M5[2][1] = 0;
 
   pinMode(stepPin_1, OUTPUT);
   pinMode(dirPin_1, OUTPUT);
@@ -168,13 +206,16 @@ void Strobe_Input_Handler() {
     //    analogWrite(RED_LED, 0);
     analogWrite(UV_LED, M[0][0]);
     analogWrite(RED_LED, M[1][0]);
+    analogWrite(WHITE_LED, M[2][0]);
+//    analogWrite(IR_LED, M[3][0]);
   }
   else {
     //    analogWrite(UV_LED, 0);
     //    analogWrite(RED_LED, PWM_Red);
     analogWrite(UV_LED, M[0][1]);
     analogWrite(RED_LED, M[1][1]);
-
+    analogWrite(WHITE_LED, M[2][1]);
+//    analogWrite(IR_LED, M[3][1]);
   }
 
   counter += 1; // + синхр.
@@ -232,32 +273,38 @@ void waiting_4_command() {
     if (mode == 1)
     {
 
-      for (uint8_t i = 0; i < 2; i++)
+      for (uint8_t i = 0; i < 3; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M1[i][j];
     }
     if (mode == 2)
     {
 
-      for (uint8_t i = 0; i < 2; i++)
+      for (uint8_t i = 0; i < 3; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M2[i][j];
     }
     if (mode == 3)
     {
-      for (uint8_t i = 0; i < 2; i++)
+      for (uint8_t i = 0; i < 3; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M3[i][j];
     }
         if (mode == 4)
     {
-      for (uint8_t i = 0; i < 2; i++)
+      for (uint8_t i = 0; i < 3; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M4[i][j];
     }
+           if (mode == 5)
+    {
+      for (uint8_t i = 0; i < 3; i++)
+        for (uint8_t j = 0; j < 2; j++)
+          M[i][j] = M5[i][j];
+    }
     if (mode == 0)
     {
-      for (uint8_t i = 0; i < 2; i++)
+      for (uint8_t i = 0; i < 3; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M0[i][j];
     }
@@ -270,11 +317,11 @@ void loop()
   VAR_Y = analogRead(VAR_Y_pin);
   //  Serial.println(VAR_X);
   //  Serial.println(VAR_Y);
-//  Serial.println(counter);
-//  digitalWrite(3, HIGH);
-//  delay(500);
-//  digitalWrite(3, LOW);
-//  delay(500);
+  Serial.println(counter);
+  digitalWrite(3, HIGH);
+  delay(500);
+  digitalWrite(3, LOW);
+  delay(500);
   waiting_4_command();
   digitalWrite(nEnl, LOW);
   digitalWrite(dirPin_1, HIGH);
@@ -287,13 +334,13 @@ void loop()
   digitalWrite(m0_2, HIGH);
 
   digitalWrite(nsleep, HIGH);
-  for (int x = 0; x < 200; x++) {
-//    digitalWrite(stepPin_1, HIGH);
-    digitalWrite(stepPin_2, HIGH);
-    delay(10);  // ms (Note : 1000ms = 1sec)
-//    digitalWrite(stepPin_1, LOW);
-    digitalWrite(stepPin_2, LOW);
-    delay(10); // ms (Note : 1000ms = 1sec)
-    Serial.println(x);
-  }
+//  for (int x = 0; x < 200; x++) {
+////    digitalWrite(stepPin_1, HIGH);
+//    digitalWrite(stepPin_2, HIGH);
+//    delay(10);  // ms (Note : 1000ms = 1sec)
+////    digitalWrite(stepPin_1, LOW);
+//    digitalWrite(stepPin_2, LOW);
+//    delay(10); // ms (Note : 1000ms = 1sec)
+//    Serial.println(x);
+//  }
 }
