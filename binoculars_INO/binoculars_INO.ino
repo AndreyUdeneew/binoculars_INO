@@ -179,6 +179,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(strobeInput), Strobe_Input_Handler, RISING); // 4 Rpi Pico
   pinMode(strobeInput, INPUT_PULLUP); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
   //    pinMode(strobeInput,INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
+  motorsCalibration();
   //  while (!Serial) delay(10);
 
   //  Serial.println(F("Adafruit VL53L1X sensor demo"));
@@ -211,6 +212,31 @@ void setup()
   //  */
 }
 
+void motorsCalibration()
+{
+  digitalWrite(nEnl, LOW);
+  digitalWrite(dirPin_1, HIGH);
+  digitalWrite(m1_1, LOW);
+  digitalWrite(m0_1, LOW);
+
+  digitalWrite(nEn2, LOW);
+  digitalWrite(dirPin_2, LOW);
+  digitalWrite(m1_2, LOW);
+  digitalWrite(m0_2, LOW);
+
+  digitalWrite(nsleep, HIGH);
+//  Motor1 - focus(?)
+//  Motor2 - fzoom(?) 
+//  for (int x = 0; x < 65536; x++) {
+//    digitalWrite(stepPin_1, HIGH);
+//    digitalWrite(stepPin_2, HIGH);
+//    delay(5);  // ms (Note : 1000ms = 1sec)
+//    digitalWrite(stepPin_1, LOW);
+//    digitalWrite(stepPin_2, LOW);
+//    delay(5); // ms (Note : 1000ms = 1sec)
+//    Serial.println(x);
+  }
+}
 
 void Strobe_Input_Handler() {
   if (counter == 2) {
@@ -317,7 +343,7 @@ void waiting_4_command() {
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M5[i][j];
     }
-        if (mode == 6)
+    if (mode == 6)
     {
       for (uint8_t i = 0; i < 3; i++)
         for (uint8_t j = 0; j < 2; j++)
@@ -341,41 +367,13 @@ void loop()
   Serial.print(VAR_X);
   Serial.print("\t Y = ");
   Serial.println(VAR_Y);
-  
-//  Serial.println("X= ");
-//  Serial.print(VAR_X);
-////  Serial.print(" ");
-////  Serial.println();
-////  delay(10);
-//  Serial.println("Y= ");
-//  Serial.print(VAR_Y);
-////  Serial.print(" ");
-//  Serial.println();
-//  delay(20);
-    Serial.println(counter);
-    digitalWrite(3, HIGH);
-    delay(500);
-    digitalWrite(3, LOW);
-    delay(500);
-    waiting_4_command();
-  digitalWrite(nEnl, LOW);
-  digitalWrite(dirPin_1, HIGH);
-  digitalWrite(m1_1, LOW);
-  digitalWrite(m0_1, LOW);
 
-  digitalWrite(nEn2, LOW);
-  digitalWrite(dirPin_2, LOW);
-  digitalWrite(m1_2, LOW);
-  digitalWrite(m0_2, LOW);
+  //  delay(20);
+  //    Serial.println(counter);
+  //    digitalWrite(3, HIGH);
+  //    delay(500);
+  //    digitalWrite(3, LOW);
+  //    delay(500);
+  waiting_4_command();
 
-  digitalWrite(nsleep, HIGH);
-    for (int x = 0; x < 200; x++) {
-      digitalWrite(stepPin_1, HIGH);
-      digitalWrite(stepPin_2, HIGH);
-      delay(2);  // ms (Note : 1000ms = 1sec)
-      digitalWrite(stepPin_1, LOW);
-      digitalWrite(stepPin_2, LOW);
-      delay(2); // ms (Note : 1000ms = 1sec)
-//      Serial.println(x);
-    }
 }
