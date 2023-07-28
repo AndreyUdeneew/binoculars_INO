@@ -42,7 +42,7 @@ uint8_t mode;
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
-volatile uint8_t M[2][2];
+volatile uint8_t M[3][2];
 volatile uint8_t M0[3][2]
 {
   {0, 0},
@@ -54,6 +54,7 @@ volatile uint8_t M2[3][2];
 volatile uint8_t M3[3][2];
 volatile uint8_t M4[3][2];
 volatile uint8_t M5[3][2];
+volatile uint8_t M6[3][2];
 
 
 void modesCacheRefresh()
@@ -93,6 +94,13 @@ void modesCacheRefresh()
   M5[1][1] = 0;
   M5[2][0] = PWM_White;
   M5[2][1] = 0;
+
+  M6[0][0] = PWM_UV;          //Sequental stroboscope of red and UV LEDs.
+  M6[0][1] = 0;
+  M6[1][0] = 0;
+  M6[1][1] = PWM_Red;
+  M6[2][0] = PWM_White;
+  M6[2][1] = PWM_White;
 }
 
 void setup()
@@ -132,6 +140,13 @@ void setup()
   M5[2][0] = PWM_White;
   M5[2][1] = 0;
 
+  M6[0][0] = PWM_UV;          //Sequental stroboscope of red and UV LEDs.
+  M6[0][1] = 0;
+  M6[1][0] = 0;
+  M6[1][1] = PWM_Red;
+  M6[2][0] = PWM_White;
+  M6[2][1] = PWM_White;
+
   pinMode(stepPin_1, OUTPUT);
   pinMode(dirPin_1, OUTPUT);
   pinMode(stepPin_2, OUTPUT);
@@ -139,19 +154,19 @@ void setup()
   pinMode(nsleep, OUTPUT);
   pinMode(nEnl, OUTPUT);
   pinMode(nEn2, OUTPUT);
-  pinMode(nFLT1, OUTPUT);
-  pinMode(nFLT2, OUTPUT);
+  pinMode(nFLT1, INPUT);
+  pinMode(nFLT2, INPUT);
   pinMode(m0_1, OUTPUT);
   pinMode(m1_1, OUTPUT);
   pinMode(m0_2, OUTPUT);
   pinMode(m1_2, OUTPUT);
-  
+
   //  pinMode(strpbeInput, INPUT_PULLUP); /// Our camera strobe in HIGH - Acquiring, LOW - not acquiring
   pinMode(UV_LED, OUTPUT);// UV LED
   pinMode(RED_LED, OUTPUT);// UV LED
   pinMode(WHITE_LED, OUTPUT);// White LED
   pinMode(3, OUTPUT);// For migalka test
-  
+
   analogWrite(WHITE_LED, PWM_White);
   analogWrite(UV_LED, PWM_White); // 4 correct work of interrpt
   analogWrite(RED_LED, PWM_White); // 4 correct work of interrpt
@@ -163,37 +178,37 @@ void setup()
   //  attachInterrupt(strobeInput, Strobe_Input_Handler, RISING); // 4 ARDUINO
   attachInterrupt(digitalPinToInterrupt(strobeInput), Strobe_Input_Handler, RISING); // 4 Rpi Pico
   pinMode(strobeInput, INPUT_PULLUP); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
-//    pinMode(strobeInput,INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
-//  while (!Serial) delay(10);
+  //    pinMode(strobeInput,INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
+  //  while (!Serial) delay(10);
 
-//  Serial.println(F("Adafruit VL53L1X sensor demo"));
-//  Wire.begin(400000);
-//  if (! vl53.begin(0x29, &Wire)) {
-//    Serial.print(F("Error on init of VL sensor: "));
-//    Serial.println(vl53.vl_status);
-//    while (1)       delay(10);
-//  }
-//  Serial.println(F("VL53L1X sensor OK!"));
-//
-//  Serial.print(F("Sensor ID: 0x"));
-//  Serial.println(vl53.sensorID(), HEX);
-//
-//  if (! vl53.startRanging()) {
-//    Serial.print(F("Couldn't start ranging: "));
-//    Serial.println(vl53.vl_status);
-//    while (1)       delay(10);
-//  }
-//  Serial.println(F("Ranging started"));
-//
-//  // Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
-//  vl53.setTimingBudget(50);
-//  Serial.print(F("Timing budget (ms): "));
-//  Serial.println(vl53.getTimingBudget());
-//
-//  /*
-//  vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
-//  vl.VL53L1X_SetInterruptPolarity(0);
-//  */
+  //  Serial.println(F("Adafruit VL53L1X sensor demo"));
+  //  Wire.begin(400000);
+  //  if (! vl53.begin(0x29, &Wire)) {
+  //    Serial.print(F("Error on init of VL sensor: "));
+  //    Serial.println(vl53.vl_status);
+  //    while (1)       delay(10);
+  //  }
+  //  Serial.println(F("VL53L1X sensor OK!"));
+  //
+  //  Serial.print(F("Sensor ID: 0x"));
+  //  Serial.println(vl53.sensorID(), HEX);
+  //
+  //  if (! vl53.startRanging()) {
+  //    Serial.print(F("Couldn't start ranging: "));
+  //    Serial.println(vl53.vl_status);
+  //    while (1)       delay(10);
+  //  }
+  //  Serial.println(F("Ranging started"));
+  //
+  //  // Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
+  //  vl53.setTimingBudget(50);
+  //  Serial.print(F("Timing budget (ms): "));
+  //  Serial.println(vl53.getTimingBudget());
+  //
+  //  /*
+  //  vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
+  //  vl.VL53L1X_SetInterruptPolarity(0);
+  //  */
 }
 
 
@@ -207,7 +222,7 @@ void Strobe_Input_Handler() {
     analogWrite(UV_LED, M[0][0]);
     analogWrite(RED_LED, M[1][0]);
     analogWrite(WHITE_LED, M[2][0]);
-//    analogWrite(IR_LED, M[3][0]);
+    //    analogWrite(IR_LED, M[3][0]);
   }
   else {
     //    analogWrite(UV_LED, 0);
@@ -215,7 +230,7 @@ void Strobe_Input_Handler() {
     analogWrite(UV_LED, M[0][1]);
     analogWrite(RED_LED, M[1][1]);
     analogWrite(WHITE_LED, M[2][1]);
-//    analogWrite(IR_LED, M[3][1]);
+    //    analogWrite(IR_LED, M[3][1]);
   }
 
   counter += 1; // + синхр.
@@ -290,17 +305,23 @@ void waiting_4_command() {
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M3[i][j];
     }
-        if (mode == 4)
+    if (mode == 4)
     {
       for (uint8_t i = 0; i < 3; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M4[i][j];
     }
-           if (mode == 5)
+    if (mode == 5)
     {
       for (uint8_t i = 0; i < 3; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M5[i][j];
+    }
+        if (mode == 6)
+    {
+      for (uint8_t i = 0; i < 3; i++)
+        for (uint8_t j = 0; j < 2; j++)
+          M[i][j] = M6[i][j];
     }
     if (mode == 0)
     {
@@ -315,32 +336,46 @@ void loop()
 {
   VAR_X = analogRead(VAR_X_pin);
   VAR_Y = analogRead(VAR_Y_pin);
-  //  Serial.println(VAR_X);
-  //  Serial.println(VAR_Y);
-  Serial.println(counter);
-  digitalWrite(3, HIGH);
-  delay(500);
-  digitalWrite(3, LOW);
-  delay(500);
-  waiting_4_command();
+
+  Serial.print("X = ");
+  Serial.print(VAR_X);
+  Serial.print("\t Y = ");
+  Serial.println(VAR_Y);
+  
+//  Serial.println("X= ");
+//  Serial.print(VAR_X);
+////  Serial.print(" ");
+////  Serial.println();
+////  delay(10);
+//  Serial.println("Y= ");
+//  Serial.print(VAR_Y);
+////  Serial.print(" ");
+//  Serial.println();
+//  delay(20);
+    Serial.println(counter);
+    digitalWrite(3, HIGH);
+    delay(500);
+    digitalWrite(3, LOW);
+    delay(500);
+    waiting_4_command();
   digitalWrite(nEnl, LOW);
   digitalWrite(dirPin_1, HIGH);
   digitalWrite(m1_1, LOW);
-  digitalWrite(m0_1, HIGH);
+  digitalWrite(m0_1, LOW);
 
   digitalWrite(nEn2, LOW);
-  digitalWrite(dirPin_2, HIGH);
+  digitalWrite(dirPin_2, LOW);
   digitalWrite(m1_2, LOW);
-  digitalWrite(m0_2, HIGH);
+  digitalWrite(m0_2, LOW);
 
   digitalWrite(nsleep, HIGH);
-//  for (int x = 0; x < 200; x++) {
-////    digitalWrite(stepPin_1, HIGH);
-//    digitalWrite(stepPin_2, HIGH);
-//    delay(10);  // ms (Note : 1000ms = 1sec)
-////    digitalWrite(stepPin_1, LOW);
-//    digitalWrite(stepPin_2, LOW);
-//    delay(10); // ms (Note : 1000ms = 1sec)
-//    Serial.println(x);
-//  }
+    for (int x = 0; x < 200; x++) {
+      digitalWrite(stepPin_1, HIGH);
+      digitalWrite(stepPin_2, HIGH);
+      delay(2);  // ms (Note : 1000ms = 1sec)
+      digitalWrite(stepPin_1, LOW);
+      digitalWrite(stepPin_2, LOW);
+      delay(2); // ms (Note : 1000ms = 1sec)
+//      Serial.println(x);
+    }
 }
