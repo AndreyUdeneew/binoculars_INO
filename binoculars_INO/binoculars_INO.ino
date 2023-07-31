@@ -17,7 +17,7 @@ uint8_t RED_LED = 7;
 uint8_t VAR_X_pin = 26;
 uint8_t VAR_Y_pin = 27;
 
-uint8_t nsleep = 9;
+uint8_t nMotorsSleep = 9;
 
 uint8_t nFLT1 = 10;
 uint8_t nEnl = 11;
@@ -152,7 +152,7 @@ void setup()
   pinMode(dirPin_1, OUTPUT);
   pinMode(stepPin_2, OUTPUT);
   pinMode(dirPin_2, OUTPUT);
-  pinMode(nsleep, OUTPUT);
+  pinMode(nMotorsSleep, OUTPUT);
   pinMode(nEnl, OUTPUT);
   pinMode(nEn2, OUTPUT);
   pinMode(nFLT1, INPUT);
@@ -225,18 +225,18 @@ void motorsCalibration()
   digitalWrite(m1_2, LOW);
   digitalWrite(m0_2, LOW);
 
-  digitalWrite(nsleep, HIGH);
+  digitalWrite(nMotorsSleep, LOW);
   //  Motor1 - focus(?)
   //  Motor2 - fzoom(?)
-  //  for (int x = 0; x < 65536; x++) {
-  //    digitalWrite(stepPin_1, HIGH);
-  //    digitalWrite(stepPin_2, HIGH);
-  //    delay(5);  // ms (Note : 1000ms = 1sec)
-  //    digitalWrite(stepPin_1, LOW);
-  //    digitalWrite(stepPin_2, LOW);
-  //    delay(5); // ms (Note : 1000ms = 1sec)
-  //    Serial.println(x);
-}
+  //    for (int x = 0; x < 65536; x++) {
+  //      digitalWrite(stepPin_1, HIGH);
+  //      digitalWrite(stepPin_2, HIGH);
+  //      delay(5);  // ms (Note : 1000ms = 1sec)
+  //      digitalWrite(stepPin_1, LOW);
+  //      digitalWrite(stepPin_2, LOW);
+  //      delay(5); // ms (Note : 1000ms = 1sec)
+  //      Serial.println(x);
+  //}
 }
 
 void Strobe_Input_Handler() {
@@ -368,21 +368,94 @@ void filterChange(uint8_t actualFilter)
 {
   if (actualFilter == 0)
   {
-    digitalWrite();
-    digitalWrite();
+    //    digitalWrite();
+    //    digitalWrite();
   }
   else
   {
-    digitalWrite();
-    digitalWrite();
+    //    digitalWrite();
+    //    digitalWrite();
   }
 }
 
+void zoom(uint8_t dir)
+{
+  digitalWrite(nMotorsSleep, HIGH);
+  if (dir == 1)
+  {
+    digitalWrite(dirPin_2, HIGH);
+    while (analogRead(VAR_Y_pin) >= 767)
+    {
+      digitalWrite(stepPin_2, HIGH);
+      delay(2);
+      digitalWrite(stepPin_2, LOW);
+      delay(2);
+    }
+  }
+  if (dir == 0)
+  {
+    digitalWrite(dirPin_2, LOW);
+    while (analogRead(VAR_Y_pin) <= 256)
+    {
+      digitalWrite(stepPin_2, HIGH);
+      delay(2);
+      digitalWrite(stepPin_2, LOW);
+      delay(2);
+    }
+  }
+  digitalWrite(nMotorsSleep, LOW);
+}
+
+void focus(uint8_t dir)
+{
+  digitalWrite(nMotorsSleep, HIGH);
+  if (dir == 1)
+  {
+    digitalWrite(dirPin_1, HIGH);
+    while (analogRead(VAR_X_pin) >= 767)
+    {
+      digitalWrite(stepPin_1, HIGH);
+      delay(2);
+      digitalWrite(stepPin_1, LOW);
+      delay(2);
+    }
+  }
+  if (dir == 0)
+  {
+    digitalWrite(dirPin_1, LOW);
+    while (analogRead(VAR_X_pin) <= 256)
+    {
+      digitalWrite(stepPin_1, HIGH);
+      delay(2);
+      digitalWrite(stepPin_1, LOW);
+      delay(2);
+    }
+  }
+  digitalWrite(nMotorsSleep, LOW);
+}
 
 void loop()
 {
   VAR_X = analogRead(VAR_X_pin);
   VAR_Y = analogRead(VAR_Y_pin);
+
+  if ((VAR_Y >= 767))
+  {
+    zoom(1);
+  }
+  if (VAR_Y <= 256)
+  {
+    zoom(0);
+  }
+
+  if ((VAR_X >= 767))
+  {
+    focus(1);
+  }
+  if (VAR_X <= 256)
+  {
+    focus(0);
+  }
 
   Serial.print("X = ");
   Serial.print(VAR_X);
