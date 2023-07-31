@@ -38,6 +38,7 @@ volatile uint8_t PWM_UV = 1;
 volatile uint8_t PWM_Red = 1;
 
 uint8_t mode;
+uint8_t actualFilter = 0;
 
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
@@ -225,17 +226,17 @@ void motorsCalibration()
   digitalWrite(m0_2, LOW);
 
   digitalWrite(nsleep, HIGH);
-//  Motor1 - focus(?)
-//  Motor2 - fzoom(?) 
-//  for (int x = 0; x < 65536; x++) {
-//    digitalWrite(stepPin_1, HIGH);
-//    digitalWrite(stepPin_2, HIGH);
-//    delay(5);  // ms (Note : 1000ms = 1sec)
-//    digitalWrite(stepPin_1, LOW);
-//    digitalWrite(stepPin_2, LOW);
-//    delay(5); // ms (Note : 1000ms = 1sec)
-//    Serial.println(x);
-  }
+  //  Motor1 - focus(?)
+  //  Motor2 - fzoom(?)
+  //  for (int x = 0; x < 65536; x++) {
+  //    digitalWrite(stepPin_1, HIGH);
+  //    digitalWrite(stepPin_2, HIGH);
+  //    delay(5);  // ms (Note : 1000ms = 1sec)
+  //    digitalWrite(stepPin_1, LOW);
+  //    digitalWrite(stepPin_2, LOW);
+  //    delay(5); // ms (Note : 1000ms = 1sec)
+  //    Serial.println(x);
+}
 }
 
 void Strobe_Input_Handler() {
@@ -307,6 +308,11 @@ void waiting_4_command() {
     Serial.println(PWM_VAL);
   }
 
+  if (cmd.substring(0, 2) == "FC") {
+    actualFilter = cmd[3] - '0';
+    filterChange(actualFilter);
+  }
+
   if (cmd.substring(0, 1) == "M") {
     mode = cmd[1] - '0';
     Serial.println("mode has been changed");
@@ -357,6 +363,21 @@ void waiting_4_command() {
     }
   }
 }
+
+void filterChange(uint8_t actualFilter)
+{
+  if (actualFilter == 0)
+  {
+    digitalWrite();
+    digitalWrite();
+  }
+  else
+  {
+    digitalWrite();
+    digitalWrite();
+  }
+}
+
 
 void loop()
 {
