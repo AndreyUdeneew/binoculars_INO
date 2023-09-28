@@ -13,6 +13,7 @@ uint8_t strobeInput = 2;
 uint8_t UV_LED = 8;
 uint8_t WHITE_LED = 6;
 uint8_t RED_LED = 7;
+uint8_t IR_LED = 28;
 
 uint8_t VAR_X_pin = 26;
 uint8_t VAR_Y_pin = 27;
@@ -23,19 +24,20 @@ uint8_t nFLT1 = 10;
 uint8_t nEnl = 11;
 uint8_t stepPin_1 = 12;
 uint8_t dirPin_1 = 13;
-uint8_t m0_1 = 14;
-uint8_t m1_1 = 15;
+uint8_t k1 = 14;
+uint8_t k2 = 15;
 
 uint8_t nFLT2 = 21;
 uint8_t nEn2 = 20;
 uint8_t stepPin_2 = 19;
 uint8_t dirPin_2 = 18;
-uint8_t m0_2 = 17;
-uint8_t m1_2 = 16;
+uint8_t solenoid_DIR = 16;
+uint8_t solenoid_ON = 17;
 
 volatile uint8_t PWM_White = 1;
 volatile uint8_t PWM_UV = 1;
 volatile uint8_t PWM_Red = 1;
+volatile uint8_t PWM_IR = 1;
 
 uint8_t mode;
 uint8_t actualFilter = 0;
@@ -43,20 +45,21 @@ uint8_t actualFilter = 0;
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
-volatile uint8_t M[3][2];
-volatile uint8_t M0[3][2]
+volatile uint8_t M[4][2];
+volatile uint8_t M0[4][2]
 {
+  {0, 0},
   {0, 0},
   {0, 0},
   {0, 0}
 };
-volatile uint8_t M1[3][2];
-volatile uint8_t M2[3][2];
-volatile uint8_t M3[3][2];
-volatile uint8_t M4[3][2];
-volatile uint8_t M5[3][2];
-volatile uint8_t M6[3][2];
-
+volatile uint8_t M1[4][2];
+volatile uint8_t M2[4][2];
+volatile uint8_t M3[4][2];
+volatile uint8_t M4[4][2];
+volatile uint8_t M5[4][2];
+volatile uint8_t M6[4][2];
+volatile uint8_t M7[4][2];
 
 void modesCacheRefresh()
 {
@@ -67,6 +70,8 @@ void modesCacheRefresh()
   M1[1][1] = 0;
   M1[2][0] = PWM_White;
   M1[2][1] = PWM_White;
+  M1[3][0] = 0;
+  M1[3][1] = 0;
 
   M2[0][0] = 0;
   M2[0][1] = 0;
@@ -74,6 +79,8 @@ void modesCacheRefresh()
   M2[1][1] = 0;
   M2[2][0] = PWM_White;
   M2[2][1] = PWM_White;
+  M2[3][0] = 0;
+  M2[3][1] = 0;
 
   M3[0][0] = PWM_UV;
   M3[0][1] = 0;
@@ -81,6 +88,8 @@ void modesCacheRefresh()
   M3[1][1] = 0;
   M3[2][0] = PWM_White;
   M3[2][1] = PWM_White;
+  M3[3][0] = 0;
+  M3[3][1] = 0;
 
   M4[0][0] = PWM_UV;          //oxygenation IR LEDs must be mounted instead of UV LEDs.
   M4[0][1] = 0;
@@ -88,6 +97,8 @@ void modesCacheRefresh()
   M4[1][1] = PWM_Red;
   M4[2][0] = 0;
   M4[2][1] = 0;
+  M4[3][0] = 0;
+  M4[3][1] = 0;
 
   M5[0][0] = 0;             // ICG mode IR LEDs must be mounted instead of White LEDs.
   M5[0][1] = 0;
@@ -95,6 +106,8 @@ void modesCacheRefresh()
   M5[1][1] = 0;
   M5[2][0] = PWM_White;
   M5[2][1] = 0;
+  M4[3][0] = 0;
+  M4[3][1] = 0;
 
   M6[0][0] = PWM_UV;          //Sequental stroboscope of red and UV LEDs.
   M6[0][1] = 0;
@@ -102,6 +115,17 @@ void modesCacheRefresh()
   M6[1][1] = PWM_Red;
   M6[2][0] = PWM_White;
   M6[2][1] = PWM_White;
+  M6[3][0] = 0;
+  M6[3][1] = 0;
+
+  M7[0][0] = 0;
+  M7[0][1] = 0;
+  M7[1][0] = 0;
+  M7[1][1] = 0;
+  M7[2][0] = PWM_White;
+  M7[2][1] = PWM_White;
+  M7[3][0] = PWM_IR;
+  M7[3][1] = 0;
 }
 
 void setup()
@@ -112,6 +136,8 @@ void setup()
   M1[1][1] = 0;
   M1[2][0] = PWM_White;
   M1[2][1] = PWM_White;
+  M1[3][0] = 0;
+  M1[3][1] = 0;
 
   M2[0][0] = 0;
   M2[0][1] = 0;
@@ -119,6 +145,8 @@ void setup()
   M2[1][1] = 0;
   M2[2][0] = PWM_White;
   M2[2][1] = PWM_White;
+  M2[3][0] = 0;
+  M2[3][1] = 0;
 
   M3[0][0] = PWM_UV;
   M3[0][1] = 0;
@@ -126,6 +154,8 @@ void setup()
   M3[1][1] = 0;
   M3[2][0] = PWM_White;
   M3[2][1] = PWM_White;
+  M3[3][0] = 0;
+  M3[3][1] = 0;
 
   M4[0][0] = PWM_UV;          //oxygenation IR LEDs must be mounted instead of UV LEDs.
   M4[0][1] = 0;
@@ -133,6 +163,8 @@ void setup()
   M4[1][1] = PWM_Red;
   M4[2][0] = 0;
   M4[2][1] = 0;
+  M4[3][0] = 0;
+  M4[3][1] = 0;
 
   M5[0][0] = 0;             // ICG mode IR LEDs must be mounted instead of White LEDs.
   M5[0][1] = 0;
@@ -140,6 +172,8 @@ void setup()
   M5[1][1] = 0;
   M5[2][0] = PWM_White;
   M5[2][1] = 0;
+  M5[3][0] = 0;
+  M5[3][1] = 0;
 
   M6[0][0] = PWM_UV;          //Sequental stroboscope of red and UV LEDs.
   M6[0][1] = 0;
@@ -147,6 +181,17 @@ void setup()
   M6[1][1] = PWM_Red;
   M6[2][0] = PWM_White;
   M6[2][1] = PWM_White;
+  M6[3][0] = 0;
+  M6[3][1] = 0;
+
+  M7[0][0] = 0;
+  M7[0][1] = 0;
+  M7[1][0] = 0;
+  M7[1][1] = 0;
+  M7[2][0] = PWM_White;
+  M7[2][1] = PWM_White;
+  M7[3][0] = PWM_IR;
+  M7[3][1] = 0;
 
   pinMode(stepPin_1, OUTPUT);
   pinMode(dirPin_1, OUTPUT);
@@ -157,20 +202,24 @@ void setup()
   pinMode(nEn2, OUTPUT);
   pinMode(nFLT1, INPUT);
   pinMode(nFLT2, INPUT);
-  pinMode(m0_1, OUTPUT);
-  pinMode(m1_1, OUTPUT);
-  pinMode(m0_2, OUTPUT);
-  pinMode(m1_2, OUTPUT);
+  pinMode(k1, INPUT);
+  pinMode(k2, INPUT);
+  pinMode(solenoid_DIR, OUTPUT);
+  pinMode(solenoid_ON, OUTPUT);
 
   //  pinMode(strpbeInput, INPUT_PULLUP); /// Our camera strobe in HIGH - Acquiring, LOW - not acquiring
   pinMode(UV_LED, OUTPUT);// UV LED
   pinMode(RED_LED, OUTPUT);// UV LED
   pinMode(WHITE_LED, OUTPUT);// White LED
+  pinMode(IR_LED, OUTPUT);// White LED
   pinMode(3, OUTPUT);// For migalka test
 
   analogWrite(WHITE_LED, PWM_White);
+  delay(10);
   analogWrite(UV_LED, PWM_White); // 4 correct work of interrpt
   analogWrite(RED_LED, PWM_White); // 4 correct work of interrpt
+  analogWrite(IR_LED, PWM_White); // 4 correct work of interrpt
+//  analogWrite(UV_LED, PWM_White); // 4 correct work of interrpt
   //digitalWrite(UV_LED, HIGH);// 4 correct work of interrpt
   //digitalWrite(RED_LED, HIGH);// 4 correct work of interrpt
   Serial.begin(115200);
@@ -217,13 +266,13 @@ void motorsCalibration()
 {
   digitalWrite(nEnl, LOW);
   digitalWrite(dirPin_1, HIGH);
-  digitalWrite(m1_1, LOW);
-  digitalWrite(m0_1, LOW);
+  //  digitalWrite(m1_1, LOW);
+  //  digitalWrite(m0_1, LOW);
 
   digitalWrite(nEn2, LOW);
   digitalWrite(dirPin_2, LOW);
-  digitalWrite(m1_2, LOW);
-  digitalWrite(m0_2, LOW);
+  //  digitalWrite(m1_2, LOW);
+  //  digitalWrite(m0_2, LOW);
 
   digitalWrite(nMotorsSleep, LOW);
   //  Motor1 - focus(?)
@@ -249,7 +298,7 @@ void Strobe_Input_Handler() {
     analogWrite(UV_LED, M[0][0]);
     analogWrite(RED_LED, M[1][0]);
     analogWrite(WHITE_LED, M[2][0]);
-    //    analogWrite(IR_LED, M[3][0]);
+    analogWrite(IR_LED, M[3][0]);
   }
   else {
     //    analogWrite(UV_LED, 0);
@@ -257,7 +306,7 @@ void Strobe_Input_Handler() {
     analogWrite(UV_LED, M[0][1]);
     analogWrite(RED_LED, M[1][1]);
     analogWrite(WHITE_LED, M[2][1]);
-    //    analogWrite(IR_LED, M[3][1]);
+    analogWrite(IR_LED, M[3][1]);
   }
 
   counter += 1; // + синхр.
@@ -320,44 +369,50 @@ void waiting_4_command() {
     if (mode == 1)
     {
 
-      for (uint8_t i = 0; i < 3; i++)
+      for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M1[i][j];
     }
     if (mode == 2)
     {
 
-      for (uint8_t i = 0; i < 3; i++)
+      for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M2[i][j];
     }
     if (mode == 3)
     {
-      for (uint8_t i = 0; i < 3; i++)
+      for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M3[i][j];
     }
     if (mode == 4)
     {
-      for (uint8_t i = 0; i < 3; i++)
+      for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M4[i][j];
     }
     if (mode == 5)
     {
-      for (uint8_t i = 0; i < 3; i++)
+      for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M5[i][j];
     }
     if (mode == 6)
     {
-      for (uint8_t i = 0; i < 3; i++)
+      for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M6[i][j];
     }
+    if (mode == 7)
+    {
+      for (uint8_t i = 0; i < 4; i++)
+        for (uint8_t j = 0; j < 2; j++)
+          M[i][j] = M7[i][j];
+    }
     if (mode == 0)
     {
-      for (uint8_t i = 0; i < 3; i++)
+      for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M0[i][j];
     }
@@ -366,30 +421,33 @@ void waiting_4_command() {
 
 void filterChange(uint8_t actualFilter)
 {
+  digitalWrite(solenoid_ON, HIGH);
   if (actualFilter == 0)
   {
-    //    digitalWrite();
-    //    digitalWrite();
+    digitalWrite(solenoid_DIR, HIGH);
   }
   else
   {
-    //    digitalWrite();
-    //    digitalWrite();
+    digitalWrite(solenoid_DIR, LOW);
   }
+  digitalWrite(solenoid_ON, HIGH);
 }
 
 void zoom(uint8_t dir)
 {
   digitalWrite(nMotorsSleep, HIGH);
+  uint32_t zoomCount = 0;
   if (dir == 1)
   {
     digitalWrite(dirPin_2, HIGH);
     while (analogRead(VAR_Y_pin) >= 767)
     {
       digitalWrite(stepPin_2, HIGH);
-      delay(2);
+      delay(1);
       digitalWrite(stepPin_2, LOW);
-      delay(2);
+      delay(1);
+      zoomCount += 1;
+      Serial.println(zoomCount);
     }
   }
   if (dir == 0)
@@ -398,9 +456,11 @@ void zoom(uint8_t dir)
     while (analogRead(VAR_Y_pin) <= 256)
     {
       digitalWrite(stepPin_2, HIGH);
-      delay(2);
+      delay(1);
       digitalWrite(stepPin_2, LOW);
-      delay(2);
+      delay(1);
+      zoomCount += 1;
+      Serial.println(zoomCount);
     }
   }
   digitalWrite(nMotorsSleep, LOW);
@@ -409,15 +469,18 @@ void zoom(uint8_t dir)
 void focus(uint8_t dir)
 {
   digitalWrite(nMotorsSleep, HIGH);
+  uint32_t focusCount = 0;
   if (dir == 1)
   {
     digitalWrite(dirPin_1, HIGH);
     while (analogRead(VAR_X_pin) >= 767)
     {
       digitalWrite(stepPin_1, HIGH);
-      delay(2);
+      delay(1);
       digitalWrite(stepPin_1, LOW);
-      delay(2);
+      delay(1);
+      focusCount += 1;
+      Serial.println(focusCount);
     }
   }
   if (dir == 0)
@@ -426,9 +489,11 @@ void focus(uint8_t dir)
     while (analogRead(VAR_X_pin) <= 256)
     {
       digitalWrite(stepPin_1, HIGH);
-      delay(2);
+      delay(1);
       digitalWrite(stepPin_1, LOW);
-      delay(2);
+      delay(1);
+      focusCount += 1;
+      Serial.println(focusCount);
     }
   }
   digitalWrite(nMotorsSleep, LOW);
@@ -462,12 +527,14 @@ void loop()
   Serial.print("\t Y = ");
   Serial.println(VAR_Y);
 
-  //  delay(20);
-  //    Serial.println(counter);
-  //    digitalWrite(3, HIGH);
-  //    delay(500);
-  //    digitalWrite(3, LOW);
-  //    delay(500);
+  delay(20);
+  Serial.println(counter);
+  digitalWrite(3, HIGH);
+//  filterChange(0);
+  delay(500);
+  digitalWrite(3, LOW);
+//  filterCha nge(1);
+  delay(500);
   waiting_4_command();
 
 }
