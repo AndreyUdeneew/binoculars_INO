@@ -316,7 +316,7 @@ void waiting_4_command() {
   int PWM_VAL, PWM_VALH, PWM_VALL, PWM_VALlowest;
   cmd = "";
   if (Serial.available()) {
-    cmd = Serial.readString();
+    cmd = Serial.readStringUntil('\n');
     cmd.trim();
   }
 
@@ -530,10 +530,10 @@ void loop()
   delay(20);
   Serial.println(counter);
   digitalWrite(3, HIGH);
-//  filterChange(0);
+  filterChange(0);
   delay(500);
   digitalWrite(3, LOW);
-//  filterCha nge(1);
+  filterChange(1);
   delay(500);
   waiting_4_command();
 
