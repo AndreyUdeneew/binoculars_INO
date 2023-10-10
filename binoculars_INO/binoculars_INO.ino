@@ -1,8 +1,8 @@
-//#include <Wire.h>
-//#include "Adafruit_VL53L1X.h"
-//#define IRQ_PIN 3
-//#define XSHUT_PIN 28
-//Adafruit_VL53L1X vl53 = Adafruit_VL53L1X(XSHUT_PIN, IRQ_PIN);
+#include <Wire.h>
+#include "Adafruit_VL53L1X.h"
+#define IRQ_PIN 3
+#define XSHUT_PIN 28
+Adafruit_VL53L1X vl53 = Adafruit_VL53L1X(XSHUT_PIN, IRQ_PIN);
 
 String cmd, CMDcur;
 uint8_t programNumber;
@@ -34,7 +34,7 @@ uint8_t dirPin_2 = 18;
 uint8_t solenoid_DIR = 16;
 uint8_t solenoid_ON = 17;
 
-volatile uint8_t PWM_White = 1;
+volatile uint8_t PWM_White = 10;
 volatile uint8_t PWM_UV = 1;
 volatile uint8_t PWM_Red = 1;
 volatile uint8_t PWM_IR = 1;
@@ -48,10 +48,10 @@ uint16_t VAR_Y = 0;
 volatile uint8_t M[4][2];
 volatile uint8_t M0[4][2]
 {
-  {0, 0},
-  {0, 0},
-  {0, 0},
-  {0, 0}
+  {PWM_White, 0},
+  {PWM_White, 0},
+  {PWM_White, 0},
+  {PWM_White, 0}
 };
 volatile uint8_t M1[4][2];
 volatile uint8_t M2[4][2];
@@ -82,7 +82,7 @@ void modesCacheRefresh()
   M2[3][0] = 0;
   M2[3][1] = 0;
 
-  M3[0][0] = PWM_UV;
+  M3[0][0] = PWM_UV;      //Both UV and Red LEDs
   M3[0][1] = 0;
   M3[1][0] = PWM_Red;
   M3[1][1] = 0;
@@ -166,7 +166,7 @@ void setup()
   M4[3][0] = 0;
   M4[3][1] = 0;
 
-  M5[0][0] = 0;             // ICG mode IR LEDs must be mounted instead of White LEDs.
+  M5[0][0] = 0;
   M5[0][1] = 0;
   M5[1][0] = 0;
   M5[1][1] = 0;
@@ -184,7 +184,7 @@ void setup()
   M6[3][0] = 0;
   M6[3][1] = 0;
 
-  M7[0][0] = 0;
+  M7[0][0] = 0;             // ICG mode IR LEDs must be mounted instead of White LEDs.
   M7[0][1] = 0;
   M7[1][0] = 0;
   M7[1][1] = 0;
@@ -219,7 +219,7 @@ void setup()
   analogWrite(UV_LED, PWM_White); // 4 correct work of interrpt
   analogWrite(RED_LED, PWM_White); // 4 correct work of interrpt
   analogWrite(IR_LED, PWM_White); // 4 correct work of interrpt
-//  analogWrite(UV_LED, PWM_White); // 4 correct work of interrpt
+  //  analogWrite(UV_LED, PWM_White); // 4 correct work of interrpt
   //digitalWrite(UV_LED, HIGH);// 4 correct work of interrpt
   //digitalWrite(RED_LED, HIGH);// 4 correct work of interrpt
   Serial.begin(115200);
@@ -227,52 +227,50 @@ void setup()
   //  pinMode(strobeInput,INPUT);
   //  attachInterrupt(strobeInput, Strobe_Input_Handler, RISING); // 4 ARDUINO
   attachInterrupt(digitalPinToInterrupt(strobeInput), Strobe_Input_Handler, RISING); // 4 Rpi Pico
-  pinMode(strobeInput, INPUT_PULLUP); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
-  //    pinMode(strobeInput,INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
+  //  pinMode(strobeInput, INPUT_PULLUP); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
+  pinMode(strobeInput, INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
+  digitalWrite(solenoid_DIR, LOW);
+  digitalWrite(solenoid_ON, LOW);
   motorsCalibration();
-  //  while (!Serial) delay(10);
+  //      while (!Serial) delay(10);
+  ////
+  //    Serial.println(F("Adafruit VL53L1X sensor demo"));
+  Wire.begin(400000);
+  if (! vl53.begin(0x29, &Wire)) {
+    Serial.print(F("Error on init of VL sensor: "));
+    Serial.println(vl53.vl_status);
+    while (1)       delay(10);
+  }
+  Serial.println(F("VL53L1X sensor OK!"));
 
-  //  Serial.println(F("Adafruit VL53L1X sensor demo"));
-  //  Wire.begin(400000);
-  //  if (! vl53.begin(0x29, &Wire)) {
-  //    Serial.print(F("Error on init of VL sensor: "));
-  //    Serial.println(vl53.vl_status);
-  //    while (1)       delay(10);
-  //  }
-  //  Serial.println(F("VL53L1X sensor OK!"));
-  //
-  //  Serial.print(F("Sensor ID: 0x"));
-  //  Serial.println(vl53.sensorID(), HEX);
-  //
-  //  if (! vl53.startRanging()) {
-  //    Serial.print(F("Couldn't start ranging: "));
-  //    Serial.println(vl53.vl_status);
-  //    while (1)       delay(10);
-  //  }
-  //  Serial.println(F("Ranging started"));
-  //
-  //  // Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
-  //  vl53.setTimingBudget(50);
-  //  Serial.print(F("Timing budget (ms): "));
-  //  Serial.println(vl53.getTimingBudget());
-  //
-  //  /*
-  //  vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
-  //  vl.VL53L1X_SetInterruptPolarity(0);
-  //  */
+  Serial.print(F("Sensor ID: 0x"));
+  Serial.println(vl53.sensorID(), HEX);
+
+  if (! vl53.startRanging()) {
+    Serial.print(F("Couldn't start ranging: "));
+    Serial.println(vl53.vl_status);
+    while (1)       delay(10);
+  }
+  Serial.println(F("Ranging started"));
+
+  //   Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
+  vl53.setTimingBudget(50);
+  //    Serial.print(F("Timing budget (ms): "));
+  //    Serial.println(vl53.getTimingBudget());
+
+  /*
+    vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
+    vl.VL53L1X_SetInterruptPolarity(0);
+    //  */
 }
 
 void motorsCalibration()
 {
   digitalWrite(nEnl, LOW);
   digitalWrite(dirPin_1, HIGH);
-  //  digitalWrite(m1_1, LOW);
-  //  digitalWrite(m0_1, LOW);
 
   digitalWrite(nEn2, LOW);
   digitalWrite(dirPin_2, LOW);
-  //  digitalWrite(m1_2, LOW);
-  //  digitalWrite(m0_2, LOW);
 
   digitalWrite(nMotorsSleep, LOW);
   //  Motor1 - focus(?)
@@ -316,7 +314,8 @@ void waiting_4_command() {
   int PWM_VAL, PWM_VALH, PWM_VALL, PWM_VALlowest;
   cmd = "";
   if (Serial.available()) {
-    cmd = Serial.readStringUntil('\n');
+    //    cmd = Serial.readStringUntil('\n');
+    cmd = Serial.readString();
     cmd.trim();
   }
 
@@ -360,6 +359,10 @@ void waiting_4_command() {
   if (cmd.substring(0, 2) == "FC") {
     actualFilter = cmd[3] - '0';
     filterChange(actualFilter);
+  }
+
+  if (cmd.substring(0, 5) == "DIST?") {
+    distanceMeas();
   }
 
   if (cmd.substring(0, 1) == "M") {
@@ -419,18 +422,43 @@ void waiting_4_command() {
   }
 }
 
+void distanceMeas(void)
+{
+  int16_t distance;
+
+  if (vl53.dataReady()) {
+    // new measurement for the taking!
+    distance = vl53.distance();
+    if (distance == -1) {
+      // something went wrong!
+      Serial.print(F("Couldn't get distance: "));
+      Serial.println(vl53.vl_status);
+      return;
+    }
+    Serial.print(F("Distance: "));
+    Serial.print(distance);
+    Serial.println(" mm");
+
+    // data is read out, time for another reading!
+    vl53.clearInterrupt();
+  }
+}
+
 void filterChange(uint8_t actualFilter)
 {
   digitalWrite(solenoid_ON, HIGH);
+  delay(5);
   if (actualFilter == 0)
   {
     digitalWrite(solenoid_DIR, HIGH);
+    delay(5);
   }
   else
   {
     digitalWrite(solenoid_DIR, LOW);
+    delay(5);
   }
-  digitalWrite(solenoid_ON, HIGH);
+  digitalWrite(solenoid_ON, LOW);
 }
 
 void zoom(uint8_t dir)
@@ -522,19 +550,22 @@ void loop()
     focus(0);
   }
 
-  Serial.print("X = ");
-  Serial.print(VAR_X);
-  Serial.print("\t Y = ");
-  Serial.println(VAR_Y);
+//  Serial.print("X = ");
+//  Serial.print(VAR_X);
+//  Serial.print("\t Y = ");
+//  Serial.println(VAR_Y);
 
-  delay(20);
-  Serial.println(counter);
-  digitalWrite(3, HIGH);
-  filterChange(0);
-  delay(500);
-  digitalWrite(3, LOW);
-  filterChange(1);
-  delay(500);
-  waiting_4_command();
+//  delay(20);
+//  Serial.println(counter);
+//  digitalWrite(3, HIGH);
+//  filterChange(0);
+//  delay(500);
+//  digitalWrite(3, LOW);
+//  filterChange(1);
+//  delay(500);
+  if (Serial.available())
+  {
+    waiting_4_command();
+  }
 
 }
