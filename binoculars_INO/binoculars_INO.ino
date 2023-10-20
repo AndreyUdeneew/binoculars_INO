@@ -34,10 +34,10 @@ uint8_t dirPin_2 = 18;
 uint8_t solenoid_DIR = 16;
 uint8_t solenoid_ON = 17;
 
-volatile uint8_t PWM_White = 10;
-volatile uint8_t PWM_UV = 1;
-volatile uint8_t PWM_Red = 1;
-volatile uint8_t PWM_IR = 1;
+volatile uint8_t PWM_White = 250;
+volatile uint8_t PWM_UV = 250;
+volatile uint8_t PWM_Red = 250;
+volatile uint8_t PWM_IR = 250;
 
 uint8_t mode;
 uint8_t actualFilter = 0;
@@ -235,32 +235,32 @@ void setup()
   //      while (!Serial) delay(10);
   ////
   //    Serial.println(F("Adafruit VL53L1X sensor demo"));
-  Wire.begin(400000);
-  if (! vl53.begin(0x29, &Wire)) {
-    Serial.print(F("Error on init of VL sensor: "));
-    Serial.println(vl53.vl_status);
-    while (1)       delay(10);
-  }
-  Serial.println(F("VL53L1X sensor OK!"));
-
-  Serial.print(F("Sensor ID: 0x"));
-  Serial.println(vl53.sensorID(), HEX);
-
-  if (! vl53.startRanging()) {
-    Serial.print(F("Couldn't start ranging: "));
-    Serial.println(vl53.vl_status);
-    while (1)       delay(10);
-  }
-  Serial.println(F("Ranging started"));
-
-  //   Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
-  vl53.setTimingBudget(50);
-  //    Serial.print(F("Timing budget (ms): "));
-  //    Serial.println(vl53.getTimingBudget());
-
-  /*
-    vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
-    vl.VL53L1X_SetInterruptPolarity(0);
+//  Wire.begin(400000);
+//  if (! vl53.begin(0x29, &Wire)) {
+//    Serial.print(F("Error on init of VL sensor: "));
+//    Serial.println(vl53.vl_status);
+//    while (1)       delay(10);
+//  }
+//  Serial.println(F("VL53L1X sensor OK!"));
+//
+//  Serial.print(F("Sensor ID: 0x"));
+//  Serial.println(vl53.sensorID(), HEX);
+//
+//  if (! vl53.startRanging()) {
+//    Serial.print(F("Couldn't start ranging: "));
+//    Serial.println(vl53.vl_status);
+//    while (1)       delay(10);
+//  }
+//  Serial.println(F("Ranging started"));
+//
+//  //   Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
+//  vl53.setTimingBudget(50);
+//  //    Serial.print(F("Timing budget (ms): "));
+//  //    Serial.println(vl53.getTimingBudget());
+//
+//  /*
+//    vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
+//    vl.VL53L1X_SetInterruptPolarity(0);
     //  */
 }
 
@@ -529,40 +529,40 @@ void focus(uint8_t dir)
 
 void loop()
 {
-  VAR_X = analogRead(VAR_X_pin);
-  VAR_Y = analogRead(VAR_Y_pin);
-
-  if ((VAR_Y >= 767))
-  {
-    zoom(1);
-  }
-  if (VAR_Y <= 256)
-  {
-    zoom(0);
-  }
-
-  if ((VAR_X >= 767))
-  {
-    focus(1);
-  }
-  if (VAR_X <= 256)
-  {
-    focus(0);
-  }
+//  VAR_X = analogRead(VAR_X_pin);
+//  VAR_Y = analogRead(VAR_Y_pin);
+//
+//  if ((VAR_Y >= 767))
+//  {
+//    zoom(1);
+//  }
+//  if (VAR_Y <= 256)
+//  {
+//    zoom(0);
+//  }
+//
+//  if ((VAR_X >= 767))
+//  {
+//    focus(1);
+//  }
+//  if (VAR_X <= 256)
+//  {
+//    focus(0);
+//  }
 
 //  Serial.print("X = ");
 //  Serial.print(VAR_X);
 //  Serial.print("\t Y = ");
 //  Serial.println(VAR_Y);
 
-//  delay(20);
-//  Serial.println(counter);
+  delay(20);
+  Serial.println(counter);
 //  digitalWrite(3, HIGH);
 //  filterChange(0);
-//  delay(500);
+//  delay(5);
 //  digitalWrite(3, LOW);
 //  filterChange(1);
-//  delay(500);
+//  delay(5);
   if (Serial.available())
   {
     waiting_4_command();
