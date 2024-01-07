@@ -321,6 +321,18 @@ void setup()
      vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
      vl.VL53L1X_SetInterruptPolarity(0);
    */
+
+
+     if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS * 1000, TimerHandler1))
+  {
+    Serial.print(F("Starting ITimer1 OK, millis() = ")); Serial.println(millis());
+
+#if (TIMER_INTERRUPT_DEBUG > 1)    
+    Serial.print(F("OutputPin1 = ")); Serial.print(outputPin1);
+#endif    
+  }
+  else
+    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 }
 
 void motorsCalibration()
