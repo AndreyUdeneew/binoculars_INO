@@ -95,6 +95,8 @@ volatile uint8_t M5[4][2];
 volatile uint8_t M6[4][2];
 volatile uint8_t M7[4][2];
 
+uint8_t autofocusTable[256][256];
+
 
 // Init RPI_PICO_Timer
 MBED_RPI_PICO_Timer ITimer1(1);
