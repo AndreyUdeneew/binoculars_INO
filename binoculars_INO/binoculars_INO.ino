@@ -115,6 +115,14 @@ void TimerHandler1(uint alarm_num)
   
   // digitalWrite(outputPin1, toggle1);
   toggle1 = !toggle1;
+  if(actualFilter == 1)
+  {
+    actualFilter = 0;
+  }
+  else
+  {
+    actualFilter = 1;
+  }
   // distance = vl53.distance();
 
   ////////////////////////////////////////////////////////////
@@ -609,6 +617,7 @@ void loop()
   // Serial.print("Distance = ");
   // Serial.println(distance);
   delay(1000);
+  filterChange(actualFilter);
   //  VAR_X = analogRead(VAR_X_pin);
   //  VAR_Y = analogRead(VAR_Y_pin);
   //
@@ -637,12 +646,12 @@ void loop()
 
   //  delay(20);
   // Serial.println(counter);
-   digitalWrite(3, HIGH);
-   filterChange(0);
-  delay(500);
-   digitalWrite(3, LOW);
-   filterChange(1);
-  delay(500);
+  // digitalWrite(3, HIGH);
+  //  filterChange(0);
+  // delay(500);
+  //  digitalWrite(3, LOW);
+  //  filterChange(1);
+  // delay(500); 
   if (Serial.available())
   {
     waiting_4_command();
