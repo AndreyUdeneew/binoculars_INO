@@ -79,6 +79,8 @@ uint8_t actualFilter = 0;
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
+int16_t distance;
+
 volatile uint8_t M[4][2];
 volatile uint8_t M0[4][2]
 {
@@ -113,6 +115,7 @@ void TimerHandler1(uint alarm_num)
   
   // digitalWrite(outputPin1, toggle1);
   toggle1 = !toggle1;
+  // distance = vl53.distance();
 
   ////////////////////////////////////////////////////////////
   // Always call this for MBED RP2040 after processing ISR
@@ -495,7 +498,6 @@ void waiting_4_command() {
 
 void distanceMeas(void)
 {
-  int16_t distance;
 
   if (vl53.dataReady()) {
     // new measurement for the taking!
@@ -604,6 +606,9 @@ void focus(uint8_t dir)
 
 void loop()
 {
+  // Serial.print("Distance = ");
+  // Serial.println(distance);
+  delay(1000);
   //  VAR_X = analogRead(VAR_X_pin);
   //  VAR_Y = analogRead(VAR_Y_pin);
   //
@@ -632,12 +637,12 @@ void loop()
 
   //  delay(20);
   // Serial.println(counter);
-  //  digitalWrite(3, HIGH);
-  //  filterChange(0);
-  // delay(500);
-  //  digitalWrite(3, LOW);
-  //  filterChange(1);
-  // delay(500);
+   digitalWrite(3, HIGH);
+   filterChange(0);
+  delay(500);
+   digitalWrite(3, LOW);
+   filterChange(1);
+  delay(500);
   if (Serial.available())
   {
     waiting_4_command();
