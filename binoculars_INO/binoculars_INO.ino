@@ -19,16 +19,15 @@
   This important feature is absolutely necessary for mission-critical tasks.
  *****************************************************************************************************************************/
 
-#if ( defined(ARDUINO_NANO_RP2040_CONNECT) || defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ADAFRUIT_FEATHER_RP2040) || \
-      defined(ARDUINO_GENERIC_RP2040) ) && defined(ARDUINO_ARCH_MBED)
-  #define USING_MBED_RPI_PICO_TIMER_INTERRUPT        true
+#if (defined(ARDUINO_NANO_RP2040_CONNECT) || defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_ADAFRUIT_FEATHER_RP2040) || defined(ARDUINO_GENERIC_RP2040)) && defined(ARDUINO_ARCH_MBED)
+#define USING_MBED_RPI_PICO_TIMER_INTERRUPT true
 #else
-  #error This code is intended to run on the MBED RASPBERRY_PI_PICO platform! Please check your Tools->Board setting.
+#error This code is intended to run on the MBED RASPBERRY_PI_PICO platform! Please check your Tools->Board setting.
 #endif
 
 // These define's must be placed at the beginning before #include "TimerInterrupt_Generic.h"
 // _TIMERINTERRUPT_LOGLEVEL_ from 0 to 4
-#define _TIMERINTERRUPT_LOGLEVEL_     4
+#define _TIMERINTERRUPT_LOGLEVEL_ 4
 
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "MBED_RPi_Pico_TimerInterrupt.h"
@@ -82,12 +81,11 @@ uint16_t VAR_Y = 0;
 int16_t distance;
 
 volatile uint8_t M[4][2];
-volatile uint8_t M0[4][2]
-{
-  {PWM_White, 0},
-  {PWM_White, 0},
-  {PWM_White, 0},
-  {PWM_White, 0}
+volatile uint8_t M0[4][2]{
+  { PWM_White, 0 },
+  { PWM_White, 0 },
+  { PWM_White, 0 },
+  { PWM_White, 0 }
 };
 volatile uint8_t M1[4][2];
 volatile uint8_t M2[4][2];
@@ -101,26 +99,22 @@ volatile uint8_t M7[4][2];
 // Init RPI_PICO_Timer
 MBED_RPI_PICO_Timer ITimer1(1);
 
-#define TIMER1_INTERVAL_MS    1000
+#define TIMER1_INTERVAL_MS 50
 
 // Never use Serial.print inside this mbed ISR. Will hang the system
-void TimerHandler1(uint alarm_num)
-{
+void TimerHandler1(uint alarm_num) {
   static bool toggle1 = false;
 
   ///////////////////////////////////////////////////////////
   // Always call this for MBED RP2040 before processing ISR
   TIMER_ISR_START(alarm_num);
   ///////////////////////////////////////////////////////////
-  
+
   // digitalWrite(outputPin1, toggle1);
   toggle1 = !toggle1;
-  if(actualFilter == 1)
-  {
+  if (actualFilter == 1) {
     actualFilter = 0;
-  }
-  else
-  {
+  } else {
     actualFilter = 1;
   }
   // distance = vl53.distance();
@@ -131,8 +125,7 @@ void TimerHandler1(uint alarm_num)
   ////////////////////////////////////////////////////////////
 }
 
-void modesCacheRefresh()
-{
+void modesCacheRefresh() {
   // Serial.println("cache refreshing");
   M1[0][0] = PWM_UV;
   M1[0][1] = 0;
@@ -152,7 +145,7 @@ void modesCacheRefresh()
   M2[3][0] = 0;
   M2[3][1] = 0;
 
-  M3[0][0] = PWM_UV;      //Both UV and Red LEDs
+  M3[0][0] = PWM_UV;  //Both UV and Red LEDs
   M3[0][1] = 0;
   M3[1][0] = PWM_Red;
   M3[1][1] = 0;
@@ -161,7 +154,7 @@ void modesCacheRefresh()
   M3[3][0] = 0;
   M3[3][1] = 0;
 
-  M4[0][0] = PWM_UV;          //oxygenation IR LEDs must be mounted instead of UV LEDs.
+  M4[0][0] = PWM_UV;  //oxygenation IR LEDs must be mounted instead of UV LEDs.
   M4[0][1] = 0;
   M4[1][0] = 0;
   M4[1][1] = PWM_Red;
@@ -170,7 +163,7 @@ void modesCacheRefresh()
   M4[3][0] = 0;
   M4[3][1] = 0;
 
-  M5[0][0] = 0;             // ICG mode IR LEDs must be mounted instead of White LEDs.
+  M5[0][0] = 0;  // ICG mode IR LEDs must be mounted instead of White LEDs.
   M5[0][1] = 0;
   M5[1][0] = 0;
   M5[1][1] = 0;
@@ -179,7 +172,7 @@ void modesCacheRefresh()
   M4[3][0] = 0;
   M4[3][1] = 0;
 
-  M6[0][0] = PWM_UV;          //Sequental stroboscope of red and UV LEDs.
+  M6[0][0] = PWM_UV;  //Sequental stroboscope of red and UV LEDs.
   M6[0][1] = 0;
   M6[1][0] = 0;
   M6[1][1] = PWM_Red;
@@ -198,8 +191,7 @@ void modesCacheRefresh()
   M7[3][1] = 0;
 }
 
-void setup()
-{
+void setup() {
   M1[0][0] = PWM_UV;
   M1[0][1] = 0;
   M1[1][0] = 0;
@@ -227,7 +219,7 @@ void setup()
   M3[3][0] = 0;
   M3[3][1] = 0;
 
-  M4[0][0] = PWM_UV;          //oxygenation IR LEDs must be mounted instead of UV LEDs.
+  M4[0][0] = PWM_UV;  //oxygenation IR LEDs must be mounted instead of UV LEDs.
   M4[0][1] = 0;
   M4[1][0] = 0;
   M4[1][1] = PWM_Red;
@@ -245,7 +237,7 @@ void setup()
   M5[3][0] = 0;
   M5[3][1] = 0;
 
-  M6[0][0] = PWM_UV;          //Sequental stroboscope of red and UV LEDs.
+  M6[0][0] = PWM_UV;  //Sequental stroboscope of red and UV LEDs.
   M6[0][1] = 0;
   M6[1][0] = 0;
   M6[1][1] = PWM_Red;
@@ -254,7 +246,7 @@ void setup()
   M6[3][0] = 0;
   M6[3][1] = 0;
 
-  M7[0][0] = 0;             // ICG mode IR LEDs must be mounted instead of White LEDs.
+  M7[0][0] = 0;  // ICG mode IR LEDs must be mounted instead of White LEDs.
   M7[0][1] = 0;
   M7[1][0] = 0;
   M7[1][1] = 0;
@@ -278,17 +270,17 @@ void setup()
   pinMode(solenoid_ON, OUTPUT);
 
   //  pinMode(strpbeInput, INPUT_PULLUP); /// Our camera strobe in HIGH - Acquiring, LOW - not acquiring
-  pinMode(UV_LED, OUTPUT);// UV LED
-  pinMode(RED_LED, OUTPUT);// UV LED
-  pinMode(WHITE_LED, OUTPUT);// White LED
-  pinMode(IR_LED, OUTPUT);// White LED
-  pinMode(3, OUTPUT);// For migalka test
+  pinMode(UV_LED, OUTPUT);     // UV LED
+  pinMode(RED_LED, OUTPUT);    // UV LED
+  pinMode(WHITE_LED, OUTPUT);  // White LED
+  pinMode(IR_LED, OUTPUT);     // White LED
+  pinMode(3, OUTPUT);          // For migalka test
 
   analogWrite(WHITE_LED, PWM_White);
   delay(10);
-  analogWrite(UV_LED, PWM_White); // 4 correct work of interrpt
-  analogWrite(RED_LED, PWM_White); // 4 correct work of interrpt
-  analogWrite(IR_LED, PWM_White); // 4 correct work of interrpt
+  analogWrite(UV_LED, PWM_White);   // 4 correct work of interrpt
+  analogWrite(RED_LED, PWM_White);  // 4 correct work of interrpt
+  analogWrite(IR_LED, PWM_White);   // 4 correct work of interrpt
   //  analogWrite(UV_LED, PWM_White); // 4 correct work of interrpt
   //digitalWrite(UV_LED, HIGH);// 4 correct work of interrpt
   //digitalWrite(RED_LED, HIGH);// 4 correct work of interrpt
@@ -296,58 +288,57 @@ void setup()
   Serial.setTimeout(100);
   //  pinMode(strobeInput,INPUT);
   //  attachInterrupt(strobeInput, Strobe_Input_Handler, RISING); // 4 ARDUINO
-  attachInterrupt(digitalPinToInterrupt(strobeInput), Strobe_Input_Handler, RISING); // 4 Rpi Pico
+  attachInterrupt(digitalPinToInterrupt(strobeInput), Strobe_Input_Handler, RISING);  // 4 Rpi Pico
   //  pinMode(strobeInput, INPUT_PULLUP); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
-  pinMode(strobeInput, INPUT); // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
+  pinMode(strobeInput, INPUT);  // 4 Rpi Pico pull_up must be after the attachinterrupt. It's a bug.
   digitalWrite(solenoid_DIR, LOW);
   digitalWrite(solenoid_ON, LOW);
   motorsCalibration();
-       while (!Serial) delay(10);
+  while (!Serial) delay(10);
   //
-     Serial.println(F("Adafruit VL53L1X sensor demo"));
-   Wire.begin(400000);
-   if (! vl53.begin(0x29, &Wire)) {
-     Serial.print(F("Error on init of VL sensor: "));
-     Serial.println(vl53.vl_status);
-     while (1)       delay(10);
-   }
-   Serial.println(F("VL53L1X sensor OK!"));
-  
-   Serial.print(F("Sensor ID: 0x"));
-   Serial.println(vl53.sensorID(), HEX);
-  
-   if (! vl53.startRanging()) {
-     Serial.print(F("Couldn't start ranging: "));
-     Serial.println(vl53.vl_status);
-     while (1)       delay(10);
-   }
-   Serial.println(F("Ranging started"));
-  
-   //   Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
-   vl53.setTimingBudget(50);
-   //    Serial.print(F("Timing budget (ms): "));
-   //    Serial.println(vl53.getTimingBudget());
-  
-   /*
+  Serial.println(F("Adafruit VL53L1X sensor demo"));
+  Wire.begin(400000);
+  if (!vl53.begin(0x29, &Wire)) {
+    Serial.print(F("Error on init of VL sensor: "));
+    Serial.println(vl53.vl_status);
+    while (1) delay(10);
+  }
+  Serial.println(F("VL53L1X sensor OK!"));
+
+  Serial.print(F("Sensor ID: 0x"));
+  Serial.println(vl53.sensorID(), HEX);
+
+  if (!vl53.startRanging()) {
+    Serial.print(F("Couldn't start ranging: "));
+    Serial.println(vl53.vl_status);
+    while (1) delay(10);
+  }
+  Serial.println(F("Ranging started"));
+
+  //   Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
+  vl53.setTimingBudget(50);
+  //    Serial.print(F("Timing budget (ms): "));
+  //    Serial.println(vl53.getTimingBudget());
+
+  /*
      vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
      vl.VL53L1X_SetInterruptPolarity(0);
    */
 
 
-     if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS * 1000, TimerHandler1))
-  {
-    Serial.print(F("Starting ITimer1 OK, millis() = ")); Serial.println(millis());
+  if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS * 1000, TimerHandler1)) {
+    Serial.print(F("Starting ITimer1 OK, millis() = "));
+    Serial.println(millis());
 
-#if (TIMER_INTERRUPT_DEBUG > 1)    
-    Serial.print(F("OutputPin1 = ")); Serial.print(outputPin1);
-#endif    
-  }
-  else
+#if (TIMER_INTERRUPT_DEBUG > 1)
+    Serial.print(F("OutputPin1 = "));
+    Serial.print(outputPin1);
+#endif
+  } else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 }
 
-void motorsCalibration()
-{
+void motorsCalibration() {
   digitalWrite(nEnl, LOW);
   digitalWrite(dirPin_1, HIGH);
 
@@ -379,8 +370,7 @@ void Strobe_Input_Handler() {
     analogWrite(RED_LED, M[1][0]);
     analogWrite(WHITE_LED, M[2][0]);
     analogWrite(IR_LED, M[3][0]);
-  }
-  else {
+  } else {
     //    analogWrite(UV_LED, 0);
     //    analogWrite(RED_LED, PWM_Red);
     analogWrite(UV_LED, M[0][1]);
@@ -389,7 +379,7 @@ void Strobe_Input_Handler() {
     analogWrite(IR_LED, M[3][1]);
   }
 
-  counter += 1; // + синхр.
+  counter += 1;  // + синхр.
 }
 
 void waiting_4_command() {
@@ -451,52 +441,44 @@ void waiting_4_command() {
     mode = cmd[1] - '0';
     // Serial.println("mode has been changed");
     // Serial.println(mode);
-    if (mode == 1)
-    {
+    if (mode == 1) {
 
       for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M1[i][j];
     }
-    if (mode == 2)
-    {
+    if (mode == 2) {
 
       for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M2[i][j];
     }
-    if (mode == 3)
-    {
+    if (mode == 3) {
       for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M3[i][j];
     }
-    if (mode == 4)
-    {
+    if (mode == 4) {
       for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M4[i][j];
     }
-    if (mode == 5)
-    {
+    if (mode == 5) {
       for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M5[i][j];
     }
-    if (mode == 6)
-    {
+    if (mode == 6) {
       for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M6[i][j];
     }
-    if (mode == 7)
-    {
+    if (mode == 7) {
       for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M7[i][j];
     }
-    if (mode == 0)
-    {
+    if (mode == 0) {
       for (uint8_t i = 0; i < 4; i++)
         for (uint8_t j = 0; j < 2; j++)
           M[i][j] = M0[i][j];
@@ -504,8 +486,7 @@ void waiting_4_command() {
   }
 }
 
-void distanceMeas(void)
-{
+void distanceMeas(void) {
 
   if (vl53.dataReady()) {
     // new measurement for the taking!
@@ -525,36 +506,29 @@ void distanceMeas(void)
   }
 }
 
-void filterChange(uint8_t actualFilter)
-{
+void filterChange(uint8_t actualFilter) {
   // Serial.println("filter changing");
   // Serial.println(actualFilter);
   digitalWrite(solenoid_ON, HIGH);
   delay(5);
-  if (actualFilter == 0)
-  {
+  if (actualFilter == 0) {
     digitalWrite(solenoid_DIR, HIGH);
     delay(5);
-  }
-  else
-  {
+  } else {
     digitalWrite(solenoid_DIR, LOW);
     delay(5);
   }
   digitalWrite(solenoid_ON, LOW);
 }
 
-void zoom(uint8_t dir)
-{
+void zoom(uint8_t dir) {
   // Serial.println("filter switching");
   // Serial.println(actualFilter);
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t zoomCount = 0;
-  if (dir == 1)
-  {
+  if (dir == 1) {
     digitalWrite(dirPin_2, HIGH);
-    while (analogRead(VAR_Y_pin) >= 767)
-    {
+    while (analogRead(VAR_Y_pin) >= 767) {
       digitalWrite(stepPin_2, HIGH);
       delay(1);
       digitalWrite(stepPin_2, LOW);
@@ -563,11 +537,9 @@ void zoom(uint8_t dir)
       // Serial.println(zoomCount);
     }
   }
-  if (dir == 0)
-  {
+  if (dir == 0) {
     digitalWrite(dirPin_2, LOW);
-    while (analogRead(VAR_Y_pin) <= 256)
-    {
+    while (analogRead(VAR_Y_pin) <= 256) {
       digitalWrite(stepPin_2, HIGH);
       delay(1);
       digitalWrite(stepPin_2, LOW);
@@ -579,15 +551,12 @@ void zoom(uint8_t dir)
   digitalWrite(nMotorsSleep, LOW);
 }
 
-void focus(uint8_t dir)
-{
+void focus(uint8_t dir) {
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t focusCount = 0;
-  if (dir == 1)
-  {
+  if (dir == 1) {
     digitalWrite(dirPin_1, HIGH);
-    while (analogRead(VAR_X_pin) >= 767)
-    {
+    while (analogRead(VAR_X_pin) >= 767) {
       digitalWrite(stepPin_1, HIGH);
       delay(1);
       digitalWrite(stepPin_1, LOW);
@@ -596,11 +565,9 @@ void focus(uint8_t dir)
       // Serial.println(focusCount);
     }
   }
-  if (dir == 0)
-  {
+  if (dir == 0) {
     digitalWrite(dirPin_1, LOW);
-    while (analogRead(VAR_X_pin) <= 256)
-    {
+    while (analogRead(VAR_X_pin) <= 256) {
       digitalWrite(stepPin_1, HIGH);
       delay(1);
       digitalWrite(stepPin_1, LOW);
@@ -612,49 +579,68 @@ void focus(uint8_t dir)
   digitalWrite(nMotorsSleep, LOW);
 }
 
-void loop()
+int lastTimer1;
+
+void loop() 
 {
-  // Serial.print("Distance = ");
-  // Serial.println(distance);
-  delay(1000);
-  filterChange(actualFilter);
-  //  VAR_X = analogRead(VAR_X_pin);
-  //  VAR_Y = analogRead(VAR_Y_pin);
-  //
-  //  if ((VAR_Y >= 767))
-  //  {
-  //    zoom(1);
-  //  }
-  //  if (VAR_Y <= 256)
-  //  {
-  //    zoom(0);
-  //  }
-  //
-  //  if ((VAR_X >= 767))
-  //  {
-  //    focus(1);
-  //  }
-  //  if (VAR_X <= 256)
-  //  {
-  //    focus(0);
-  //  }
+  static bool timer1Stopped = false;
 
-  //  Serial.print("X = ");
-  //  Serial.print(VAR_X);
-  //  Serial.print("\t Y = ");
-  //  Serial.println(VAR_Y);
+  if (millis() - lastTimer1 > TIMER1_INTERVAL_MS) {
+    lastTimer1 = millis();
 
-  //  delay(20);
-  // Serial.println(counter);
-  // digitalWrite(3, HIGH);
-  //  filterChange(0);
-  // delay(500);
-  //  digitalWrite(3, LOW);
-  //  filterChange(1);
-  // delay(500); 
-  if (Serial.available())
-  {
-    waiting_4_command();
+    if (timer1Stopped) {
+      // Serial.print(F("Start ITimer1, millis() = "));
+      // Serial.println(millis());
+      ITimer1.restartTimer();
+      distanceMeas();
+      // filterChange(actualFilter);
+    } else {
+      // Serial.print(F("Stop ITimer1, millis() = "));
+      // Serial.println(millis());
+      ITimer1.stopTimer();
+    }
+
+    timer1Stopped = !timer1Stopped;
+    // Serial.print("Distance = ");
+    // Serial.println(distance);
+    // delay(1000);
+    
+    //  VAR_X = analogRead(VAR_X_pin);
+    //  VAR_Y = analogRead(VAR_Y_pin);
+    //
+    //  if ((VAR_Y >= 767))
+    //  {
+    //    zoom(1);
+    //  }
+    //  if (VAR_Y <= 256)
+    //  {
+    //    zoom(0);
+    //  }
+    //
+    //  if ((VAR_X >= 767))
+    //  {
+    //    focus(1);
+    //  }
+    //  if (VAR_X <= 256)
+    //  {
+    //    focus(0);
+    //  }
+
+    //  Serial.print("X = ");
+    //  Serial.print(VAR_X);
+    //  Serial.print("\t Y = ");
+    //  Serial.println(VAR_Y);
+
+    //  delay(20);
+    // Serial.println(counter);
+    // digitalWrite(3, HIGH);
+    //  filterChange(0);
+    // delay(500);
+    //  digitalWrite(3, LOW);
+    //  filterChange(1);
+    // delay(500);
+    if (Serial.available()) {
+      waiting_4_command();
+    }
   }
-
 }
