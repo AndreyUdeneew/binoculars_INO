@@ -551,6 +551,36 @@ void zoom(uint8_t dir) {
   digitalWrite(nMotorsSleep, LOW);
 }
 
+void zoomNsteps(uint8_t dir, int nSteps) {
+  // Serial.println("filter switching");
+  // Serial.println(actualFilter);
+  digitalWrite(nMotorsSleep, HIGH);
+  uint32_t zoomCount = 0;
+  if (dir == 1) {
+    digitalWrite(dirPin_2, HIGH);
+    for(int i = 0; i<nSteps; i++) {
+      digitalWrite(stepPin_2, HIGH);
+      delay(1);
+      digitalWrite(stepPin_2, LOW);
+      delay(1);
+      zoomCount += 1;
+      // Serial.println(zoomCount);
+    }
+  }
+  if (dir == 0) {
+    digitalWrite(dirPin_2, LOW);
+    for(int i = 0; i<nSteps; i++) {
+      digitalWrite(stepPin_2, HIGH);
+      delay(1);
+      digitalWrite(stepPin_2, LOW);
+      delay(1);
+      zoomCount += 1;
+      // Serial.println(zoomCount);
+    }
+  }
+  digitalWrite(nMotorsSleep, LOW);
+}
+
 void focus(uint8_t dir) {
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t focusCount = 0;
@@ -579,10 +609,38 @@ void focus(uint8_t dir) {
   digitalWrite(nMotorsSleep, LOW);
 }
 
-int lastTimer1;
+void focusNsteps(uint8_t dir, int nSteps) {
+  digitalWrite(nMotorsSleep, HIGH);
+  uint32_t focusCount = 0;
+  if (dir == 1) {
+    digitalWrite(dirPin_1, HIGH);
+    for(int i = 0; i<nSteps; i++) {
+      digitalWrite(stepPin_1, HIGH);
+      delay(1);
+      digitalWrite(stepPin_1, LOW);
+      delay(1);
+      focusCount += 1;
+      // Serial.println(focusCount);
+    }
+  }
+  if (dir == 0) {
+    digitalWrite(dirPin_1, LOW);
+    for(int i = 0; i<nSteps; i++) {
+      digitalWrite(stepPin_1, HIGH);
+      delay(1);
+      digitalWrite(stepPin_1, LOW);
+      delay(1);
+      focusCount += 1;
+      // Serial.println(focusCount);
+    }
+  }
+  digitalWrite(nMotorsSleep, LOW);
+}
+
 
 void loop() 
 {
+  int lastTimer1;
   static bool timer1Stopped = false;
 
   if (millis() - lastTimer1 > TIMER1_INTERVAL_MS) {
