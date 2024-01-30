@@ -78,6 +78,11 @@ uint8_t actualFilter = 0;
 uint16_t VAR_X = 0;
 uint16_t VAR_Y = 0;
 
+int zoomPosition;
+int focusPosition;
+int zoomTargetPosition;
+int focusTargetPsition;
+
 int16_t distance;
 
 volatile uint8_t M[4][2];
@@ -305,7 +310,7 @@ void setup() {
     Serial.println(vl53.vl_status);
     while (1) delay(10);
   }
-  Serial.println(F("VL53L1X sensor OK!"));
+  Serial.println(F("VL53L1X sensorOK!"));
 
   Serial.print(F("Sensor ID: 0x"));
   Serial.println(vl53.sensorID(), HEX);
@@ -318,14 +323,14 @@ void setup() {
   Serial.println(F("Ranging started"));
 
   //   Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
-  vl53.setTimingBudget(50);
+  vl53.setTimingBudget(15);
   //    Serial.print(F("Timing budget (ms): "));
   //    Serial.println(vl53.getTimingBudget());
 
-  /*
-     vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
-     vl.VL53L1X_SetInterruptPolarity(0);
-   */
+
+  //  vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
+  //  vl.VL53L1X_SetInterruptPolarity(0);
+
 
 
   if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS * 1000, TimerHandler1)) {
@@ -338,6 +343,11 @@ void setup() {
 #endif
   } else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
+
+  focusNsteps(0, 2900, 1);
+  zoomNsteps(0, 2100, 1);
+  zoomPosition = 0;
+  focusPosition = 0;
 }
 
 void motorsCalibration() {
@@ -523,7 +533,7 @@ void filterChange(uint8_t actualFilter) {
   digitalWrite(solenoid_ON, LOW);
 }
 
-void zoom(uint8_t dir) {
+void zoom(uint8_t dir, uint8_t lag) {
   // Serial.println("filter switching");
   // Serial.println(actualFilter);
   digitalWrite(nMotorsSleep, HIGH);
@@ -532,9 +542,9 @@ void zoom(uint8_t dir) {
     digitalWrite(dirPin_2, HIGH);
     while (analogRead(VAR_Y_pin) >= 767) {
       digitalWrite(stepPin_2, HIGH);
-      delay(1);
+      delay(lag);
       digitalWrite(stepPin_2, LOW);
-      delay(1);
+      delay(lag);
       zoomCount += 1;
       // Serial.println(zoomCount);
     }
@@ -543,9 +553,9 @@ void zoom(uint8_t dir) {
     digitalWrite(dirPin_2, LOW);
     while (analogRead(VAR_Y_pin) <= 256) {
       digitalWrite(stepPin_2, HIGH);
-      delay(1);
+      delay(lag);
       digitalWrite(stepPin_2, LOW);
-      delay(1);
+      delay(lag);
       zoomCount += 1;
       // Serial.println(zoomCount);
     }
@@ -553,29 +563,29 @@ void zoom(uint8_t dir) {
   digitalWrite(nMotorsSleep, LOW);
 }
 
-void zoomNsteps(uint8_t dir, int nSteps) {
+void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
   // Serial.println("filter switching");
   // Serial.println(actualFilter);
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t zoomCount = 0;
   if (dir == 1) {
-    digitalWrite(dirPin_2, HIGH);
-    for(int i = 0; i<nSteps; i++) {
-      digitalWrite(stepPin_2, HIGH);
-      delay(1);
-      digitalWrite(stepPin_2, LOW);
-      delay(1);
+    digitalWrite(dirPin_1, HIGH);
+    for (int i = 0; i < nSteps; i++) {
+      digitalWrite(stepPin_1, HIGH);
+      delay(lag);
+      digitalWrite(stepPin_1, LOW);
+      delay(lag);
       zoomCount += 1;
       // Serial.println(zoomCount);
     }
   }
   if (dir == 0) {
-    digitalWrite(dirPin_2, LOW);
-    for(int i = 0; i<nSteps; i++) {
-      digitalWrite(stepPin_2, HIGH);
-      delay(1);
-      digitalWrite(stepPin_2, LOW);
-      delay(1);
+    digitalWrite(dirPin_1, LOW);
+    for (int i = 0; i < nSteps; i++) {
+      digitalWrite(stepPin_1, HIGH);
+      delay(lag);
+      digitalWrite(stepPin_1, LOW);
+      delay(lag);
       zoomCount += 1;
       // Serial.println(zoomCount);
     }
@@ -583,16 +593,16 @@ void zoomNsteps(uint8_t dir, int nSteps) {
   digitalWrite(nMotorsSleep, LOW);
 }
 
-void focus(uint8_t dir) {
+void focus(uint8_t dir, uint8_t lag) {
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t focusCount = 0;
   if (dir == 1) {
     digitalWrite(dirPin_1, HIGH);
     while (analogRead(VAR_X_pin) >= 767) {
       digitalWrite(stepPin_1, HIGH);
-      delay(1);
+      delay(lag);
       digitalWrite(stepPin_1, LOW);
-      delay(1);
+      delay(lag);
       focusCount += 1;
       // Serial.println(focusCount);
     }
@@ -601,9 +611,9 @@ void focus(uint8_t dir) {
     digitalWrite(dirPin_1, LOW);
     while (analogRead(VAR_X_pin) <= 256) {
       digitalWrite(stepPin_1, HIGH);
-      delay(1);
+      delay(lag);
       digitalWrite(stepPin_1, LOW);
-      delay(1);
+      delay(lag);
       focusCount += 1;
       // Serial.println(focusCount);
     }
@@ -611,27 +621,27 @@ void focus(uint8_t dir) {
   digitalWrite(nMotorsSleep, LOW);
 }
 
-void focusNsteps(uint8_t dir, int nSteps) {
+void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t focusCount = 0;
   if (dir == 1) {
-    digitalWrite(dirPin_1, HIGH);
-    for(int i = 0; i<nSteps; i++) {
-      digitalWrite(stepPin_1, HIGH);
-      delay(1);
-      digitalWrite(stepPin_1, LOW);
-      delay(1);
+    digitalWrite(dirPin_2, HIGH);
+    for (int i = 0; i < nSteps; i++) {
+      digitalWrite(stepPin_2, HIGH);
+      delay(lag);
+      digitalWrite(stepPin_2, LOW);
+      delay(lag);
       focusCount += 1;
       // Serial.println(focusCount);
     }
   }
   if (dir == 0) {
-    digitalWrite(dirPin_1, LOW);
-    for(int i = 0; i<nSteps; i++) {
-      digitalWrite(stepPin_1, HIGH);
-      delay(1);
-      digitalWrite(stepPin_1, LOW);
-      delay(1);
+    digitalWrite(dirPin_2, LOW);
+    for (int i = 0; i < nSteps; i++) {
+      digitalWrite(stepPin_2, HIGH);
+      delay(lag);
+      digitalWrite(stepPin_2, LOW);
+      delay(lag);
       focusCount += 1;
       // Serial.println(focusCount);
     }
@@ -640,8 +650,7 @@ void focusNsteps(uint8_t dir, int nSteps) {
 }
 
 
-void loop() 
-{
+void loop() {
   int lastTimer1;
   static bool timer1Stopped = false;
 
@@ -661,30 +670,42 @@ void loop()
     }
 
     timer1Stopped = !timer1Stopped;
+    // timer1Stopped = timer1Stopped;
+
+    // focusNsteps(0, 500, 1);
+    // delay(1000);
+    // focusNsteps(1, 500, 1);
+    // delay(1000);
+    // zoomNsteps(0, 500, 1);
+    // delay(1000);
+    // zoomNsteps(1, 500, 1);
+    // delay(1000);
+
+
     // Serial.print("Distance = ");
     // Serial.println(distance);
     // delay(1000);
+
+     VAR_X = analogRead(VAR_X_pin);
+     VAR_Y = analogRead(VAR_Y_pin);
     
-    //  VAR_X = analogRead(VAR_X_pin);
-    //  VAR_Y = analogRead(VAR_Y_pin);
-    //
-    //  if ((VAR_Y >= 767))
-    //  {
-    //    zoom(1);
-    //  }
-    //  if (VAR_Y <= 256)
-    //  {
-    //    zoom(0);
-    //  }
-    //
-    //  if ((VAR_X >= 767))
-    //  {
-    //    focus(1);
-    //  }
-    //  if (VAR_X <= 256)
-    //  {
-    //    focus(0);
-    //  }
+     if ((VAR_Y >= 767))
+     {
+       zoom(1, 2);
+     }
+     if (VAR_Y <= 256)
+     {
+       zoom(0, 2);
+     }
+    
+     if ((VAR_X >= 767))
+     {
+       focus(1, 2);
+     }
+     if (VAR_X <= 256)
+     {
+       focus(0, 2);
+     }
 
     //  Serial.print("X = ");
     //  Serial.print(VAR_X);
