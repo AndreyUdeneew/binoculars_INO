@@ -456,6 +456,32 @@ void waiting_4_command() {
     focusNsteps(0, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom
   }
 
+  if (cmd.substring(0, 4) == "ZOOM") {
+    uint8_t dir;
+    if(cmd[4]=='+')
+    {
+      dir = 0;
+    }
+    else
+    {
+      dir = 1;
+    }
+    zoomNsteps(dir, 100, 1);    // correct N of steps    
+  }
+
+  if (cmd.substring(0, 5) == "FOCUS") {
+    uint8_t dir;
+    if(cmd[5]=='-')
+    {
+      dir = 0;
+    }
+    else
+    {
+      dir = 1;
+    }
+    focusNsteps(dir, 100, 1);    // correct N of steps    
+  }
+
   if (cmd.substring(0, 1) == "M") {
     mode = cmd[1] - '0';
     // Serial.println("mode has been changed");
