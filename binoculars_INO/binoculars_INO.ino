@@ -82,6 +82,8 @@ int zoomPosition;
 int focusPosition;
 int zoomTargetPosition;
 int focusTargetPsition;
+int maxFocusSteps = 2100;
+int maxZoomSteps = 2900;
 
 int16_t distance;
 
@@ -344,8 +346,8 @@ void setup() {
   } else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
-  focusNsteps(0, 2900, 1);
-  zoomNsteps(0, 2100, 1);
+  zoomNsteps(1, maxZoomSteps, 1);    // correct N of steps
+  focusNsteps(1, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom
   zoomPosition = 0;
   focusPosition = 0;
 }
@@ -538,7 +540,7 @@ void zoom(uint8_t dir, uint8_t lag) {
   // Serial.println(actualFilter);
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t zoomCount = 0;
-  if (dir == 1) {
+  if (dir == 1) {  //dir 1 - to the closest zoom
     digitalWrite(dirPin_2, HIGH);
     while (analogRead(VAR_Y_pin) >= 767) {
       digitalWrite(stepPin_2, HIGH);
@@ -546,6 +548,10 @@ void zoom(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
+      zoomPosition += 1;
+      if (zoomPosition >= maxZoomSteps) {
+        zoomPosition = maxZoomSteps;
+      }
       // Serial.println(zoomCount);
     }
   }
@@ -557,6 +563,10 @@ void zoom(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
+      zoomPosition -= 1;
+      if (zoomPosition <= 0) {
+        zoomPosition = 0;
+      }
       // Serial.println(zoomCount);
     }
   }
@@ -568,25 +578,33 @@ void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
   // Serial.println(actualFilter);
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t zoomCount = 0;
-  if (dir == 1) {
-    digitalWrite(dirPin_1, HIGH);
+  if (dir == 1) {  //dir 1 - to the closest zoom
+    digitalWrite(dirPin_2, HIGH);
     for (int i = 0; i < nSteps; i++) {
-      digitalWrite(stepPin_1, HIGH);
+      digitalWrite(stepPin_2, HIGH);
       delay(lag);
-      digitalWrite(stepPin_1, LOW);
+      digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
+      zoomPosition += 1;
+      if (zoomPosition >= maxZoomSteps) {
+        zoomPosition = maxZoomSteps;
+      }
       // Serial.println(zoomCount);
     }
   }
   if (dir == 0) {
-    digitalWrite(dirPin_1, LOW);
+    digitalWrite(dirPin_2, LOW);
     for (int i = 0; i < nSteps; i++) {
-      digitalWrite(stepPin_1, HIGH);
+      digitalWrite(stepPin_2, HIGH);
       delay(lag);
-      digitalWrite(stepPin_1, LOW);
+      digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
+      zoomPosition -= 1;
+      if (zoomPosition <= 0) {
+        zoomPosition = 0;
+      }
       // Serial.println(zoomCount);
     }
   }
@@ -604,6 +622,10 @@ void focus(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount += 1;
+      focusPosition += 1;
+      if (focusPosition >= maxFocusSteps) {
+        focusPosition = maxFocusSteps;
+      }
       // Serial.println(focusCount);
     }
   }
@@ -614,7 +636,11 @@ void focus(uint8_t dir, uint8_t lag) {
       delay(lag);
       digitalWrite(stepPin_1, LOW);
       delay(lag);
-      focusCount += 1;
+      focusCount -= 1;
+            focusPosition -= 1;
+      if (focusPosition <= 0) {
+        focusPosition = 0;
+      }
       // Serial.println(focusCount);
     }
   }
@@ -625,24 +651,32 @@ void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t focusCount = 0;
   if (dir == 1) {
-    digitalWrite(dirPin_2, HIGH);
+    digitalWrite(dirPin_1, HIGH);
     for (int i = 0; i < nSteps; i++) {
-      digitalWrite(stepPin_2, HIGH);
+      digitalWrite(stepPin_1, HIGH);
       delay(lag);
-      digitalWrite(stepPin_2, LOW);
+      digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount += 1;
+      focusPosition += 1;
+      if (focusPosition >= maxFocusSteps) {
+        focusPosition = maxFocusSteps;
+      }
       // Serial.println(focusCount);
     }
   }
   if (dir == 0) {
     digitalWrite(dirPin_2, LOW);
     for (int i = 0; i < nSteps; i++) {
-      digitalWrite(stepPin_2, HIGH);
+      digitalWrite(stepPin_1, HIGH);
       delay(lag);
-      digitalWrite(stepPin_2, LOW);
+      digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount += 1;
+      focusPosition -= 1;
+      if (focusPosition <= 0) {
+        focusPosition = 0;
+      }
       // Serial.println(focusCount);
     }
   }
@@ -662,6 +696,8 @@ void loop() {
       // Serial.println(millis());
       ITimer1.restartTimer();
       distanceMeas();
+      Serial.println(zoomPosition);
+      Serial.println(focusPosition);
       // filterChange(actualFilter);
     } else {
       // Serial.print(F("Stop ITimer1, millis() = "));
@@ -686,26 +722,22 @@ void loop() {
     // Serial.println(distance);
     // delay(1000);
 
-     VAR_X = analogRead(VAR_X_pin);
-     VAR_Y = analogRead(VAR_Y_pin);
-    
-     if ((VAR_Y >= 767))
-     {
-       zoom(1, 2);
-     }
-     if (VAR_Y <= 256)
-     {
-       zoom(0, 2);
-     }
-    
-     if ((VAR_X >= 767))
-     {
-       focus(1, 2);
-     }
-     if (VAR_X <= 256)
-     {
-       focus(0, 2);
-     }
+    VAR_X = analogRead(VAR_X_pin);
+    VAR_Y = analogRead(VAR_Y_pin);
+
+    if ((VAR_Y >= 767)) {
+      zoom(1, 2);
+    }
+    if (VAR_Y <= 256) {
+      zoom(0, 2);
+    }
+
+    if ((VAR_X >= 767)) {
+      focus(1, 2);
+    }
+    if (VAR_X <= 256) {
+      focus(0, 2);
+    }
 
     //  Serial.print("X = ");
     //  Serial.print(VAR_X);
