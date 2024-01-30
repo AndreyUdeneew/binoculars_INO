@@ -451,6 +451,11 @@ void waiting_4_command() {
     distanceMeas();
   }
 
+  if (cmd.substring(0, 3) == "OFF") {
+    zoomNsteps(0, maxZoomSteps, 1);    // correct N of steps
+    focusNsteps(0, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom
+  }
+
   if (cmd.substring(0, 1) == "M") {
     mode = cmd[1] - '0';
     // Serial.println("mode has been changed");
@@ -637,7 +642,7 @@ void focus(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount -= 1;
-            focusPosition -= 1;
+      focusPosition -= 1;
       if (focusPosition <= 0) {
         focusPosition = 0;
       }
