@@ -102,7 +102,7 @@ volatile uint8_t M5[4][2];
 volatile uint8_t M6[4][2];
 volatile uint8_t M7[4][2];
 
-uint8_t autofocusTable[256][256];
+int autofocusTable[256][256];  // autofocusTable[distance, mm][zoomPosition, steps];
 
 
 // Init RPI_PICO_Timer
@@ -458,28 +458,22 @@ void waiting_4_command() {
 
   if (cmd.substring(0, 4) == "ZOOM") {
     uint8_t dir;
-    if(cmd[4]=='+')
-    {
+    if (cmd[4] == '+') {
       dir = 0;
-    }
-    else
-    {
+    } else {
       dir = 1;
     }
-    zoomNsteps(dir, 100, 1);    // correct N of steps    
+    zoomNsteps(dir, 100, 1);  // correct N of steps
   }
 
   if (cmd.substring(0, 5) == "FOCUS") {
     uint8_t dir;
-    if(cmd[5]=='-')
-    {
+    if (cmd[5] == '-') {
       dir = 0;
-    }
-    else
-    {
+    } else {
       dir = 1;
     }
-    focusNsteps(dir, 100, 1);    // correct N of steps    
+    focusNsteps(dir, 100, 1);  // correct N of steps
   }
 
   if (cmd.substring(0, 1) == "M") {
@@ -531,7 +525,7 @@ void waiting_4_command() {
   }
 }
 
-void distanceMeas(void) {
+int distanceMeas(void) {
 
   if (vl53.dataReady()) {
     // new measurement for the taking!
@@ -540,15 +534,16 @@ void distanceMeas(void) {
       // something went wrong!
       Serial.print(F("Couldn't get distance: "));
       Serial.println(vl53.vl_status);
-      return;
+      return 0;
     }
-    Serial.print(F("Distance: "));
+    // Serial.print(F("Distance: "));
     Serial.print(distance);
-    Serial.println(" mm");
+    // Serial.println(" mm");
 
     // data is read out, time for another reading!
     vl53.clearInterrupt();
   }
+  return distance;
 }
 
 void filterChange(uint8_t actualFilter) {
@@ -714,6 +709,16 @@ void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
   digitalWrite(nMotorsSleep, LOW);
 }
 
+void focusCorrection() {
+  int dir;
+  int distance = distanceMeas();
+  int distanceRange = round(distance/10);
+  int zoomPositionRange = round(zoomPosition/10);
+  int correctFocus = autofocusTable[distanceRange][zoomPosition];
+  int deltaFocus = abs(correctFocus - focusPosition);
+  int steps = deltaFocus + focusPosition;
+  focusNsteps(dir, steps, 1);
+}
 
 void loop() {
   int lastTimer1;
@@ -727,6 +732,7 @@ void loop() {
       // Serial.println(millis());
       ITimer1.restartTimer();
       distanceMeas();
+      // focuscorrection();
       Serial.println(zoomPosition);
       Serial.println(focusPosition);
       // filterChange(actualFilter);
