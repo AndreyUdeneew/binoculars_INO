@@ -84,7 +84,7 @@ int zoomTargetPosition;
 int focusTargetPsition;
 int maxFocusSteps = 2100;
 int maxZoomSteps = 2900;
-int zoomZero = 1162;
+int zoomOptimal = 1162;
 
 int16_t distance;
 
@@ -349,7 +349,9 @@ void setup() {
 
   zoomNsteps(1, maxZoomSteps, 1);    // correct N of steps
   zoomPosition = 0;
-  zoomNsteps(0, zoomZero, 1);
+  zoomNsteps(0, zoomOptimal, 1);
+  zoomPosition = 0;
+  maxZoomSteps -= zoomOptimal;
   focusNsteps(1, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom  
   focusPosition = 0;  
 }
