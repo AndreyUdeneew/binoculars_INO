@@ -84,6 +84,7 @@ int zoomTargetPosition;
 int focusTargetPsition;
 int maxFocusSteps = 2100;
 int maxZoomSteps = 2900;
+int zoomZero = 1162;
 
 int16_t distance;
 
@@ -108,7 +109,7 @@ int autofocusTable[256][256];  // autofocusTable[distance, mm][zoomPosition, ste
 // Init RPI_PICO_Timer
 MBED_RPI_PICO_Timer ITimer1(1);
 
-#define TIMER1_INTERVAL_MS 50
+#define TIMER1_INTERVAL_MS 500
 
 // Never use Serial.print inside this mbed ISR. Will hang the system
 void TimerHandler1(uint alarm_num) {
@@ -347,9 +348,10 @@ void setup() {
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
   zoomNsteps(1, maxZoomSteps, 1);    // correct N of steps
-  focusNsteps(1, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom
   zoomPosition = 0;
-  focusPosition = 0;
+  zoomNsteps(0, zoomZero, 1);
+  focusNsteps(1, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom  
+  focusPosition = 0;  
 }
 
 void motorsCalibration() {
@@ -459,19 +461,19 @@ void waiting_4_command() {
   if (cmd.substring(0, 4) == "ZOOM") {
     uint8_t dir;
     if (cmd[4] == '+') {
-      dir = 0;
-    } else {
       dir = 1;
+    } else {
+      dir = 0;
     }
     zoomNsteps(dir, 100, 1);  // correct N of steps
   }
 
   if (cmd.substring(0, 5) == "FOCUS") {
     uint8_t dir;
-    if (cmd[5] == '-') {
-      dir = 0;
-    } else {
+    if (cmd[5] == '+') {
       dir = 1;
+    } else {
+      dir = 0;
     }
     focusNsteps(dir, 100, 1);  // correct N of steps
   }
@@ -574,9 +576,9 @@ void zoom(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
-      zoomPosition += 1;
-      if (zoomPosition >= maxZoomSteps) {
-        zoomPosition = maxZoomSteps;
+      zoomPosition -= 1;
+      if (zoomPosition <= 0) {
+        zoomPosition = 0;
       }
       // Serial.println(zoomCount);
     }
@@ -589,9 +591,9 @@ void zoom(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
-      zoomPosition -= 1;
-      if (zoomPosition <= 0) {
-        zoomPosition = 0;
+      zoomPosition += 1;
+      if (zoomPosition >= maxZoomSteps) {
+        zoomPosition = maxZoomSteps;
       }
       // Serial.println(zoomCount);
     }
@@ -612,9 +614,9 @@ void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
-      zoomPosition += 1;
-      if (zoomPosition >= maxZoomSteps) {
-        zoomPosition = maxZoomSteps;
+      zoomPosition -= 1;
+      if (zoomPosition <= 0) {
+        zoomPosition = 0;
       }
       // Serial.println(zoomCount);
     }
@@ -627,9 +629,9 @@ void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
-      zoomPosition -= 1;
-      if (zoomPosition <= 0) {
-        zoomPosition = 0;
+      zoomPosition += 1;
+      if (zoomPosition >= maxZoomSteps) {
+        zoomPosition = maxZoomSteps;
       }
       // Serial.println(zoomCount);
     }
@@ -648,9 +650,9 @@ void focus(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount += 1;
-      focusPosition += 1;
-      if (focusPosition >= maxFocusSteps) {
-        focusPosition = maxFocusSteps;
+      focusPosition -= 1;
+      if (focusPosition <= 0) {
+        focusPosition = 0;
       }
       // Serial.println(focusCount);
     }
@@ -662,10 +664,10 @@ void focus(uint8_t dir, uint8_t lag) {
       delay(lag);
       digitalWrite(stepPin_1, LOW);
       delay(lag);
-      focusCount -= 1;
-      focusPosition -= 1;
-      if (focusPosition <= 0) {
-        focusPosition = 0;
+      focusCount += 1;
+      focusPosition += 1;
+      if (focusPosition >= maxFocusSteps) {
+        focusPosition = maxFocusSteps;
       }
       // Serial.println(focusCount);
     }
@@ -684,9 +686,9 @@ void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
       digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount += 1;
-      focusPosition += 1;
-      if (focusPosition >= maxFocusSteps) {
-        focusPosition = maxFocusSteps;
+      focusPosition <= 1;
+      if (focusPosition <= 0) {
+        focusPosition = 0;
       }
       // Serial.println(focusCount);
     }
@@ -699,9 +701,9 @@ void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
       digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount += 1;
-      focusPosition -= 1;
-      if (focusPosition <= 0) {
-        focusPosition = 0;
+      focusPosition += 1;
+      if (focusPosition >= maxFocusSteps) {
+        focusPosition = maxFocusSteps;
       }
       // Serial.println(focusCount);
     }
@@ -712,8 +714,8 @@ void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
 void focusCorrection() {
   int dir;
   int distance = distanceMeas();
-  int distanceRange = round(distance/10);
-  int zoomPositionRange = round(zoomPosition/10);
+  int distanceRange = round(distance / 10);
+  int zoomPositionRange = round(zoomPosition / 10);
   int correctFocus = autofocusTable[distanceRange][zoomPosition];
   int deltaFocus = abs(correctFocus - focusPosition);
   int steps = deltaFocus + focusPosition;
@@ -731,7 +733,7 @@ void loop() {
       // Serial.print(F("Start ITimer1, millis() = "));
       // Serial.println(millis());
       ITimer1.restartTimer();
-      distanceMeas();
+      // distanceMeas();
       // focuscorrection();
       Serial.println(zoomPosition);
       Serial.println(focusPosition);
