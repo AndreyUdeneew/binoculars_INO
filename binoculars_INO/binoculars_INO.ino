@@ -542,7 +542,7 @@ int distanceMeas(void) {
     }
     // Serial.print(F("Distance: "));
     Serial.print(distance);
-    // Serial.println(" mm");
+    Serial.println(" mm");
 
     // data is read out, time for another reading!
     vl53.clearInterrupt();
@@ -721,6 +721,14 @@ void focusCorrection() {
   int correctFocus = autofocusTable[distanceRange][zoomPosition];
   int deltaFocus = abs(correctFocus - focusPosition);
   int steps = deltaFocus + focusPosition;
+  if ((correctFocus - focusPosition) >= 0)
+  {
+    dir = 0;
+  }
+  else
+  {
+    dir = 1;
+  }
   focusNsteps(dir, steps, 1);
 }
 
@@ -735,10 +743,11 @@ void loop() {
       // Serial.print(F("Start ITimer1, millis() = "));
       // Serial.println(millis());
       ITimer1.restartTimer();
-      // distanceMeas();
+      distanceMeas();
+      // Serial.println();
       // focuscorrection();
-      Serial.println(zoomPosition);
-      Serial.println(focusPosition);
+      // Serial.println(zoomPosition);
+      // Serial.println(focusPosition);
       // filterChange(actualFilter);
     } else {
       // Serial.print(F("Stop ITimer1, millis() = "));
