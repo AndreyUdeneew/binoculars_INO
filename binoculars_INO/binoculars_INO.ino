@@ -719,17 +719,19 @@ void focusCorrection() {
   int distanceRange = round(distance / 10);
   int zoomPositionRange = round(zoomPosition / 10);
   int correctFocus = autofocusTable[distanceRange][zoomPosition];
-  int deltaFocus = abs(correctFocus - focusPosition);
-  int steps = deltaFocus + focusPosition;
+  int deltaFocus;
+  int steps;
   if ((correctFocus - focusPosition) >= 0)
   {
+    deltaFocus = correctFocus - focusPosition;
     dir = 0;
   }
   else
   {
+    deltaFocus =  focusPosition - correctFocus;
     dir = 1;
   }
-  focusNsteps(dir, steps, 1);
+  focusNsteps(dir, deltaFocus, 1);
 }
 
 void loop() {
