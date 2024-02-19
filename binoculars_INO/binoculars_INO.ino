@@ -348,10 +348,9 @@ void setup() {
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
   zoomNsteps(1, maxZoomSteps, 1);    // correct N of steps
+  zoomNsteps(0, maxZoomSteps, 1);
   zoomPosition = 0;
-  zoomNsteps(0, zoomOptimal, 1);
-  zoomPosition = 0;
-  maxZoomSteps -= zoomOptimal;
+  // maxZoomSteps -= zoomOptimal;
   focusNsteps(1, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom
   focusNsteps(0, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom  
   focusPosition = 0;  
@@ -544,6 +543,10 @@ int distanceMeas(void) {
     // Serial.print(F("Distance: "));
     Serial.print(distance);
     Serial.println(" mm");
+    Serial.print("ZOOM ");
+    Serial.println(zoomPosition);
+    Serial.print("FOCUS ");
+    Serial.println(focusPosition);
 
     // data is read out, time for another reading!
     vl53.clearInterrupt();
@@ -579,9 +582,9 @@ void zoom(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
-      zoomPosition -= 1;
-      if (zoomPosition <= 0) {
-        zoomPosition = 0;
+      zoomPosition += 1;
+      if (zoomPosition >= maxZoomSteps) {
+        zoomPosition = maxZoomSteps;
       }
       // Serial.println(zoomCount);
     }
@@ -594,9 +597,9 @@ void zoom(uint8_t dir, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
-      zoomPosition += 1;
-      if (zoomPosition >= maxZoomSteps) {
-        zoomPosition = maxZoomSteps;
+      zoomPosition -= 1;
+      if (zoomPosition <= 0) {
+        zoomPosition = 0;
       }
       // Serial.println(zoomCount);
     }
@@ -617,9 +620,9 @@ void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
-      zoomPosition -= 1;
-      if (zoomPosition <= 0) {
-        zoomPosition = 0;
+      zoomPosition += 1;
+      if (zoomPosition >= maxZoomSteps) {
+        zoomPosition = maxZoomSteps;
       }
       // Serial.println(zoomCount);
     }
@@ -632,9 +635,9 @@ void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
       digitalWrite(stepPin_2, LOW);
       delay(lag);
       zoomCount += 1;
-      zoomPosition += 1;
-      if (zoomPosition >= maxZoomSteps) {
-        zoomPosition = maxZoomSteps;
+      zoomPosition -= 1;
+      if (zoomPosition <= 0) {
+        zoomPosition = 0;
       }
       // Serial.println(zoomCount);
     }
@@ -654,8 +657,8 @@ void focus(uint8_t dir, uint8_t lag) {
       delay(lag);
       focusCount += 1;
       focusPosition += 1;
-      if (focusPosition <= 0) {
-        focusPosition = 0;
+      if (focusPosition >= maxFocusSteps) {
+        focusPosition = maxFocusSteps;
       }
       // Serial.println(focusCount);
     }
@@ -669,8 +672,8 @@ void focus(uint8_t dir, uint8_t lag) {
       delay(lag);
       focusCount += 1;
       focusPosition -= 1;
-      if (focusPosition >= maxFocusSteps) {
-        focusPosition = maxFocusSteps;
+      if (focusPosition <= 0) {
+        focusPosition = 0;
       }
       // Serial.println(focusCount);
     }
@@ -689,9 +692,9 @@ void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
       digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount += 1;
-      focusPosition -= 1;
-      if (focusPosition <= 0) {
-        focusPosition = 0;
+      focusPosition += 1;
+      if (focusPosition >= maxFocusSteps) {
+        focusPosition = maxFocusSteps;
       }
       // Serial.println(focusCount);
     }
@@ -704,9 +707,9 @@ void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
       digitalWrite(stepPin_1, LOW);
       delay(lag);
       focusCount += 1;
-      focusPosition += 1;
-      if (focusPosition >= maxFocusSteps) {
-        focusPosition = maxFocusSteps;
+      focusPosition -= 1;
+      if (focusPosition <=0) {
+        focusPosition = 0;
       }
       // Serial.println(focusCount);
     }
@@ -749,8 +752,7 @@ void loop() {
       distanceMeas();
       // Serial.println();
       // focuscorrection();
-      Serial.println(zoomPosition);
-      Serial.println(focusPosition);
+
       // filterChange(actualFilter);
     } else {
       // Serial.print(F("Stop ITimer1, millis() = "));
