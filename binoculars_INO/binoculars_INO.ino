@@ -86,6 +86,8 @@ int maxFocusSteps = 2100;
 int maxZoomSteps = 2900;
 int zoomOptimal = 1162;
 
+int fastLag = 400;
+
 int16_t distance;
 
 volatile uint8_t M[4][2];
@@ -347,12 +349,12 @@ void setup() {
   } else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
-  zoomNsteps(1, maxZoomSteps, 1);    // correct N of steps
-  zoomNsteps(0, maxZoomSteps, 1);
+  zoomNsteps(1, maxZoomSteps, fastLag);    // correct N of steps
+  zoomNsteps(0, maxZoomSteps, fastLag);
   zoomPosition = 0;
   // maxZoomSteps -= zoomOptimal;
-  focusNsteps(1, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom
-  focusNsteps(0, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom  
+  focusNsteps(1, maxFocusSteps, fastLag);  // correct N of steps dir 1 - to the closest zoom
+  focusNsteps(0, maxFocusSteps, fastLag);  // correct N of steps dir 1 - to the closest zoom  
   focusPosition = 0;  
 }
 
@@ -456,8 +458,8 @@ void waiting_4_command() {
   }
 
   if (cmd.substring(0, 3) == "OFF") {
-    zoomNsteps(0, maxZoomSteps, 1);    // correct N of steps
-    focusNsteps(0, maxFocusSteps, 1);  // correct N of steps dir 1 - to the closest zoom
+    zoomNsteps(0, maxZoomSteps, fastLag);    // correct N of steps
+    focusNsteps(0, maxFocusSteps, fastLag);  // correct N of steps dir 1 - to the closest zoom
   }
 
   if (cmd.substring(0, 4) == "ZOOM") {
@@ -467,7 +469,7 @@ void waiting_4_command() {
     } else {
       dir = 0;
     }
-    zoomNsteps(dir, 100, 1);  // correct N of steps
+    zoomNsteps(dir, 100, fastLag);  // correct N of steps
   }
 
   if (cmd.substring(0, 5) == "FOCUS") {
@@ -477,7 +479,7 @@ void waiting_4_command() {
     } else {
       dir = 0;
     }
-    focusNsteps(dir, 100, 1);  // correct N of steps
+    focusNsteps(dir, 100, fastLag);  // correct N of steps
   }
 
   if (cmd.substring(0, 1) == "M") {
@@ -607,7 +609,7 @@ void zoom(uint8_t dir, uint8_t lag) {
   digitalWrite(nMotorsSleep, LOW);
 }
 
-void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
+void zoomNsteps(uint8_t dir, int nSteps, int lag) {
   // Serial.println("filter switching");
   // Serial.println(actualFilter);
   digitalWrite(nMotorsSleep, HIGH);
@@ -616,9 +618,11 @@ void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
     digitalWrite(dirPin_2, HIGH);
     for (int i = 0; i < nSteps; i++) {
       digitalWrite(stepPin_2, HIGH);
-      delay(lag);
+      // delay(lag);
+      delayMicroseconds(lag);
       digitalWrite(stepPin_2, LOW);
-      delay(lag);
+      // delay(lag);
+      delayMicroseconds(lag);
       zoomCount += 1;
       zoomPosition += 1;
       if (zoomPosition >= maxZoomSteps) {
@@ -631,9 +635,11 @@ void zoomNsteps(uint8_t dir, int nSteps, uint8_t lag) {
     digitalWrite(dirPin_2, LOW);
     for (int i = 0; i < nSteps; i++) {
       digitalWrite(stepPin_2, HIGH);
-      delay(lag);
+      // delay(lag);
+      delayMicroseconds(lag);
       digitalWrite(stepPin_2, LOW);
-      delay(lag);
+      // delay(lag);
+      delayMicroseconds(lag);
       zoomCount += 1;
       zoomPosition -= 1;
       if (zoomPosition <= 0) {
@@ -681,16 +687,18 @@ void focus(uint8_t dir, uint8_t lag) {
   digitalWrite(nMotorsSleep, LOW);
 }
 
-void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
+void focusNsteps(uint8_t dir, int nSteps, int lag) {
   digitalWrite(nMotorsSleep, HIGH);
   uint32_t focusCount = 0;
   if (dir == 1) {
     digitalWrite(dirPin_1, HIGH);
     for (int i = 0; i < nSteps; i++) {
       digitalWrite(stepPin_1, HIGH);
-      delay(lag);
+      // delay(lag);
+      delayMicroseconds(lag);
       digitalWrite(stepPin_1, LOW);
-      delay(lag);
+      // delay(lag);
+      delayMicroseconds(lag);
       focusCount += 1;
       focusPosition += 1;
       if (focusPosition >= maxFocusSteps) {
@@ -703,9 +711,11 @@ void focusNsteps(uint8_t dir, int nSteps, uint8_t lag) {
     digitalWrite(dirPin_1, LOW);
     for (int i = 0; i < nSteps; i++) {
       digitalWrite(stepPin_1, HIGH);
-      delay(lag);
+      // delay(lag);
+      delayMicroseconds(lag);
       digitalWrite(stepPin_1, LOW);
-      delay(lag);
+      // delay(lag);
+      delayMicroseconds(lag);
       focusCount += 1;
       focusPosition -= 1;
       if (focusPosition <=0) {
@@ -735,7 +745,7 @@ void focusCorrection() {
     deltaFocus =  focusPosition - correctFocus;
     dir = 1;
   }
-  focusNsteps(dir, deltaFocus, 1);
+  focusNsteps(dir, deltaFocus, fastLag);
 }
 
 void loop() {
@@ -763,13 +773,13 @@ void loop() {
     timer1Stopped = !timer1Stopped;
     // timer1Stopped = timer1Stopped;
 
-    // focusNsteps(0, 500, 1);
+    // focusNsteps(0, 500, fastLag);
     // delay(1000);
-    // focusNsteps(1, 500, 1);
+    // focusNsteps(1, 500, fastLag);
     // delay(1000);
-    // zoomNsteps(0, 500, 1);
+    // zoomNsteps(0, 500, fastLag);
     // delay(1000);
-    // zoomNsteps(1, 500, 1);
+    // zoomNsteps(1, 500, fastLag);
     // delay(1000);
 
 
