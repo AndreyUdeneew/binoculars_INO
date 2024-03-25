@@ -86,7 +86,7 @@ int maxFocusSteps = 2100;
 int maxZoomSteps = 2900;
 int zoomOptimal = 1162;
 
-int fastLag = 400;
+int fastLag = 500;
 
 int16_t distance;
 
@@ -111,8 +111,8 @@ int autofocusTable[256][256];  // autofocusTable[distance, mm][zoomPosition, ste
 // Init RPI_PICO_Timer
 MBED_RPI_PICO_Timer ITimer1(1);
 
-#define TIMER1_INTERVAL_MS 500
-
+#define TIMER1_INTERVAL_MS 5000
+uint8_t focusCorrected = 0;
 // Never use Serial.print inside this mbed ISR. Will hang the system
 void TimerHandler1(uint alarm_num) {
   static bool toggle1 = false;
@@ -121,14 +121,18 @@ void TimerHandler1(uint alarm_num) {
   // Always call this for MBED RP2040 before processing ISR
   TIMER_ISR_START(alarm_num);
   ///////////////////////////////////////////////////////////
+  //timer interrupt toggles pin LED_BUILTIN
+  if (focusCorrected == 1) {
+    focusCorrected = 0;
+  }
 
   // digitalWrite(outputPin1, toggle1);
   toggle1 = !toggle1;
-  if (actualFilter == 1) {
-    actualFilter = 0;
-  } else {
-    actualFilter = 1;
-  }
+  // if (actualFilter == 1) {
+  //   actualFilter = 0;
+  // } else {
+  //   actualFilter = 1;
+  // }
   // distance = vl53.distance();
 
   ////////////////////////////////////////////////////////////
@@ -202,6 +206,8 @@ void modesCacheRefresh() {
   M7[3][0] = PWM_IR;
   M7[3][1] = 0;
 }
+
+
 
 void setup() {
   M1[0][0] = PWM_UV;
@@ -349,13 +355,13 @@ void setup() {
   } else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
-  zoomNsteps(1, maxZoomSteps, fastLag);    // correct N of steps
+  zoomNsteps(1, maxZoomSteps, fastLag);  // correct N of steps
   zoomNsteps(0, maxZoomSteps, fastLag);
   zoomPosition = 0;
   // maxZoomSteps -= zoomOptimal;
   focusNsteps(1, maxFocusSteps, fastLag);  // correct N of steps dir 1 - to the closest zoom
-  focusNsteps(0, maxFocusSteps, fastLag);  // correct N of steps dir 1 - to the closest zoom  
-  focusPosition = 0;  
+  focusNsteps(0, maxFocusSteps, fastLag);  // correct N of steps dir 1 - to the closest zoom
+  focusPosition = 0;
 }
 
 void motorsCalibration() {
@@ -718,7 +724,7 @@ void focusNsteps(uint8_t dir, int nSteps, int lag) {
       delayMicroseconds(lag);
       focusCount += 1;
       focusPosition -= 1;
-      if (focusPosition <=0) {
+      if (focusPosition <= 0) {
         focusPosition = 0;
       }
       // Serial.println(focusCount);
@@ -730,95 +736,110 @@ void focusNsteps(uint8_t dir, int nSteps, int lag) {
 void focusCorrection() {
   int dir;
   int distance = distanceMeas();
-  int distanceRange = round(distance / 10);
-  int zoomPositionRange = round(zoomPosition / 10);
-  int correctFocus = autofocusTable[distanceRange][zoomPosition];
+  // int distanceRange = round(distance / 10);
+  // int zoomPositionRange = round(zoomPosition / 10);
+  float correctFocus;
   int deltaFocus;
   int steps;
-  if ((correctFocus - focusPosition) >= 0)
-  {
+
+  correctFocus = -2473.5 + 1.7036 * distance + 1.867 * zoomPosition + 0.02818 * distance * distance - 0.0073557 * zoomPosition * distance + 0.00021246 * zoomPosition * zoomPosition;
+
+  if ((correctFocus - focusPosition) >= 0) {
     deltaFocus = correctFocus - focusPosition;
     dir = 0;
-  }
-  else
-  {
-    deltaFocus =  focusPosition - correctFocus;
+  } else {
+    deltaFocus = focusPosition - correctFocus;
     dir = 1;
   }
+  Serial.println("doing correction");
+  Serial.println(correctFocus);
+  Serial.println(focusPosition);
+  Serial.println(dir);
+  Serial.println(deltaFocus);
   focusNsteps(dir, deltaFocus, fastLag);
+  Serial.println(focusCorrected);
+  focusCorrected = 1;
+  Serial.println(focusCorrected);
 }
 
 void loop() {
-  int lastTimer1;
+  static unsigned long lastTimer1 = 0;
   static bool timer1Stopped = false;
 
   if (millis() - lastTimer1 > TIMER1_INTERVAL_MS) {
     lastTimer1 = millis();
-
+    if (focusCorrected == 0) {
+      focusCorrection();
+    }
     if (timer1Stopped) {
-      // Serial.print(F("Start ITimer1, millis() = "));
-      // Serial.println(millis());
+      Serial.print(F("Start ITimer1, millis() = "));
+      Serial.println(millis());
+      // focusCorrected = 0;
+
       ITimer1.restartTimer();
-      distanceMeas();
-      // Serial.println();
-      // focuscorrection();
+      // distanceMeas();
+
+
 
       // filterChange(actualFilter);
     } else {
-      // Serial.print(F("Stop ITimer1, millis() = "));
-      // Serial.println(millis());
+
+
+      Serial.print(F("Stop ITimer1, millis() = "));
+      Serial.println(millis());
       ITimer1.stopTimer();
     }
-
     timer1Stopped = !timer1Stopped;
-    // timer1Stopped = timer1Stopped;
+    // Serial.println("timer restarted");
+  }
 
-    // focusNsteps(0, 500, fastLag);
-    // delay(1000);
-    // focusNsteps(1, 500, fastLag);
-    // delay(1000);
-    // zoomNsteps(0, 500, fastLag);
-    // delay(1000);
-    // zoomNsteps(1, 500, fastLag);
-    // delay(1000);
+  // timer1Stopped = timer1Stopped;
+
+  // focusNsteps(0, 500, fastLag);
+  // delay(1000);
+  // focusNsteps(1, 500, fastLag);
+  // delay(1000);
+  // zoomNsteps(0, 500, fastLag);
+  // delay(1000);
+  // zoomNsteps(1, 500, fastLag);
+  // delay(1000);
 
 
-    // Serial.print("Distance = ");
-    // Serial.println(distance);
-    // delay(1000);
+  // Serial.print("Distance = ");
+  // Serial.println(distance);
+  // delay(1000);
 
-    VAR_X = analogRead(VAR_X_pin);
-    VAR_Y = analogRead(VAR_Y_pin);
+  VAR_X = analogRead(VAR_X_pin);
+  VAR_Y = analogRead(VAR_Y_pin);
 
-    if ((VAR_Y >= 767)) {
-      zoom(1, 2);
-    }
-    if (VAR_Y <= 256) {
-      zoom(0, 2);
-    }
+  if ((VAR_Y >= 767)) {
+    zoom(1, 2);
+  }
+  if (VAR_Y <= 256) {
+    zoom(0, 2);
+  }
 
-    if ((VAR_X >= 767)) {
-      focus(1, 2);
-    }
-    if (VAR_X <= 256) {
-      focus(0, 2);
-    }
+  if ((VAR_X >= 767)) {
+    focus(1, 2);
+  }
+  if (VAR_X <= 256) {
+    focus(0, 2);
+  }
 
-    //  Serial.print("X = ");
-    //  Serial.print(VAR_X);
-    //  Serial.print("\t Y = ");
-    //  Serial.println(VAR_Y);
+  //  Serial.print("X = ");
+  //  Serial.print(VAR_X);
+  //  Serial.print("\t Y = ");
+  //  Serial.println(VAR_Y);
 
-    //  delay(20);
-    // Serial.println(counter);
-    // digitalWrite(3, HIGH);
-    //  filterChange(0);
-    // delay(500);
-    //  digitalWrite(3, LOW);
-    //  filterChange(1);
-    // delay(500);
-    if (Serial.available()) {
-      waiting_4_command();
-    }
+  //  delay(20);
+  // Serial.println(counter);
+  // digitalWrite(3, HIGH);
+  //  filterChange(0);
+  // delay(500);
+  //  digitalWrite(3, LOW);
+  //  filterChange(1);
+  // delay(500);
+  if (Serial.available()) {
+    waiting_4_command();
   }
 }
